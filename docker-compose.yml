@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  chandrayaan-registration:
+    build: .
+    container_name: isro_lunar_registration
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped

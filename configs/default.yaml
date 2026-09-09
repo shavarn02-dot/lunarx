@@ -1,0 +1,89 @@
+# Chandrayaan-2 Lunar Image Registration System Configuration
+# SIH26166 Compliant
+
+data:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  outputs_dir: "data/outputs"
+  weights_dir: "models/weights"
+
+sensors:
+  supported:
+    - name: "TMC-2"
+      type: "panchromatic"
+      gsd_meters: 5.0
+      swath_km: 20.0
+      status: "SUPPORTED"
+    - name: "OHRC"
+      type: "panchromatic"
+      gsd_meters: 0.25
+      swath_km: 12.0
+      status: "SUPPORTED"
+    - name: "IIRS"
+      type: "hyperspectral"
+      gsd_meters: 80.0
+      swath_km: 3.2
+      bands: 256
+      status: "PLANNED / DATA-DEPENDENT"
+
+preprocessing:
+  candidate_methods:
+    - "raw"
+    - "clahe"
+    - "gradient"
+    - "phase_congruency"
+  default_method: "clahe"
+  clahe:
+    clip_limit: 2.5
+    tile_grid_size: [8, 8]
+
+matching:
+  candidate_methods:
+    - "sift"
+    - "orb"
+    - "superpoint_lightglue"
+    - "loftr"
+  default_method: "superpoint_lightglue"
+  sift:
+    n_features: 2000
+    ratio_threshold: 0.75
+  orb:
+    n_features: 2000
+    ratio_threshold: 0.75
+  superpoint_lightglue:
+    max_num_keypoints: 1024
+    filter_threshold: 0.1
+  loftr:
+    pretrained: "outdoor"
+    max_dim: 840
+
+registration:
+  robust_estimator: "USAC_MAGSAC" # USAC_MAGSAC or RANSAC
+  reproj_threshold: 3.0
+  confidence: 0.999
+  max_iterations: 10000
+  default_model: "affine" # affine, homography, rigid
+  candidate_models:
+    - "affine"
+    - "homography"
+    - "rigid"
+  stability_condition_limit: 100000.0
+
+spatial_distribution:
+  grid_rows: 8
+  grid_cols: 8
+  max_matches_per_cell: 5
+  min_coverage_ratio: 0.15 # 15% minimum occupancy or convex hull coverage
+  enforce_coverage: true
+
+subpixel:
+  enabled: true
+  method: "corner_subpix" # corner_subpix, cross_correlation
+  window_size: [5, 5]
+  zero_zone: [-1, -1]
+  max_iterations: 30
+  epsilon: 0.01
+
+evaluation:
+  min_inlier_count: 8
+  min_inlier_ratio: 0.10

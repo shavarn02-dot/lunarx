@@ -1,0 +1,11 @@
+torch>=2.0.0
+torchvision>=0.15.0
+opencv-python>=4.8.0
+numpy>=1.24.0
+scipy>=1.10.0
+kornia>=0.7.0
+git+https://github.com/cvg/LightGlue.git
+streamlit>=1.30.0
+pytest>=8.0.0
+pyyaml>=6.0
+pillow>=10.0.0
