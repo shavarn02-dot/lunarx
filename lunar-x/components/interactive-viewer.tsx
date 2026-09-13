@@ -124,7 +124,7 @@ export function InteractiveViewer({
             onClick={() => setShowReticle(!showReticle)}
             title="Toggle Mission HUD Reticle"
           >
-            🎯 Reticle
+            Reticle
           </button>
 
           <button
@@ -133,7 +133,7 @@ export function InteractiveViewer({
             onClick={() => setZoomLevel(zoomLevel === 1 ? 1.5 : zoomLevel === 1.5 ? 2 : 1)}
             title="Zoom Factor"
           >
-            🔍 {zoomLevel}x
+            Zoom {zoomLevel}x
           </button>
 
           <button
@@ -142,7 +142,7 @@ export function InteractiveViewer({
             onClick={() => setIsFullscreen(!isFullscreen)}
             title="Toggle Fullscreen"
           >
-            {isFullscreen ? '✕ Exit' : '⛶ Fullscreen'}
+            {isFullscreen ? 'Exit' : 'Fullscreen'}
           </button>
         </div>
       </div>
@@ -207,7 +207,7 @@ export function InteractiveViewer({
               >
                 <div className="divider-line" />
                 <div className="handle-orb">
-                  <span>◀ ▶</span>
+                  <span aria-hidden="true">↔</span>
                 </div>
               </div>
 

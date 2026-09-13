@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import { ChandraLogo } from './chandra-logo'
 
 interface SiteHeaderProps {
   apiOnline: boolean
@@ -31,8 +30,10 @@ export function SiteHeader({
       {/* Top Telemetry & Brand Bar */}
       <div className="header-primary-bar">
         <div className="header-container">
-          {/* Brand Logo Lockup */}
-          <ChandraLogo size="md" showSubtitle={true} />
+          <div className="product-lockup">
+            <span className="product-mark" aria-hidden="true">C</span>
+            <span className="product-name">Chandra-sync</span>
+          </div>
 
           <div className="header-telemetry-zone">
             <div className={`engine-status-pill ${apiOnline ? 'online' : 'cached'}`}>
@@ -70,7 +71,7 @@ export function SiteHeader({
               >
                 <span className="tab-title">{tab.label}</span>
                 <span className="tab-desc">{tab.desc}</span>
-                {isActive && <div className="tab-active-indicator" />}
+                {isActive && <span className="tab-active-indicator" aria-hidden="true" />}
               </button>
             )
           })}

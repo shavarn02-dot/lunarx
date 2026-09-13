@@ -193,3 +193,81 @@ button { cursor: pointer; }
 .telemetry-details[open] summary { border-bottom: 1px solid #e6ebef; }
 .telemetry-details .telemetry-split-grid { padding: 13px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+/* Primer-style product UI: quiet surfaces, clear hierarchy, no decorative chrome. */
+:root {
+  --space-void: #f6f8fa;
+  --text-primary: #24292f;
+  --text-secondary: #57606a;
+  --text-muted: #6e7781;
+  --cyan: #0969da;
+  --saffron: #d1242f;
+  --border-subtle: #d0d7de;
+}
+html body, .chandra-app { background: #f6f8fa !important; color: #24292f !important; }
+.chandra-header { background: #fff; border-bottom: 1px solid #d0d7de; box-shadow: none; }
+.header-primary-bar { background: #fff; border-bottom: 1px solid #d8dee4; }
+.header-container { width: min(100% - 48px, 1280px); }
+.header-primary-bar .header-container { min-height: 64px; }
+.product-lockup { display: flex; align-items: center; gap: 9px; }
+.product-mark { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 6px; background: #24292f; color: #fff; font-size: 14px; font-weight: 700; }
+.product-name { color: #24292f; font-size: 16px; font-weight: 600; letter-spacing: -.01em; }
+.header-telemetry-zone { gap: 12px; }
+.engine-status-pill { padding: 5px 9px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; }
+.status-pulse-dot { width: 7px; height: 7px; }
+.status-label { color: #24292f; font-size: 12px; font-weight: 600; }
+.status-device { color: #6e7781; font-size: 11px; }
+.header-action-btn { min-height: 32px; padding: 5px 12px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; color: #24292f; font-size: 12px; font-weight: 600; box-shadow: 0 1px 0 rgba(31,35,40,.04); }
+.header-action-btn:hover { background: #f3f4f6; border-color: #afb8c1; }
+.header-nav-bar { background: #fff; border: 0; }
+.nav-scroll { gap: 0; overflow-x: auto; }
+.nav-tab-link { position: relative; min-height: 62px; padding: 12px 20px 10px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: #57606a; text-align: left; white-space: nowrap; }
+.nav-tab-link:hover { background: #f6f8fa; color: #24292f; }
+.nav-tab-link.active { border-bottom-color: #f0883e; background: #fff; color: #0969da; }
+.nav-tab-link .tab-title { font-size: 14px; font-weight: 600; }
+.nav-tab-link .tab-desc { display: block; margin-top: 3px; color: #6e7781; font-size: 12px; font-weight: 400; }
+.nav-tab-link.active .tab-desc { color: #57606a; }
+.tab-active-indicator { display: none; }
+.chandra-workspace { width: min(100% - 48px, 1280px); padding-block: 32px 64px; }
+.workspace-intro { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #d8dee4; }
+.workspace-intro .eyebrow { margin: 0 0 6px; color: #6e7781; font-size: 12px; font-weight: 600; letter-spacing: .02em; }
+.workspace-intro h1 { margin: 0; color: #24292f; font-size: clamp(24px, 3vw, 32px); font-weight: 600; letter-spacing: -.02em; }
+.workspace-intro p:not(.eyebrow) { max-width: 680px; margin: 8px 0 0; color: #57606a; font-size: 14px; line-height: 1.5; }
+.workspace-state { flex: none; padding: 5px 9px; border: 1px solid #d0d7de; border-radius: 6px; color: #57606a; background: #fff; font-size: 12px; font-weight: 600; }
+.workspace-state.is-running { border-color: #54aeff; color: #0969da; }
+.hud-card, .cv-viewer-panel, .tab-content-panel, .panel-hero-box, .feature-box-panel, .chart-card, .kpi-tile { border-color: #d0d7de !important; border-radius: 6px !important; box-shadow: 0 1px 0 rgba(31,35,40,.04) !important; }
+.hud-card-title, .panel-hero-title, .feature-box-panel h3, .chart-card-title { color: #24292f !important; }
+.hud-card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.hud-card-title { display: inline-flex; align-items: baseline; gap: 5px; font-size: 14px; font-weight: 600; }
+.hud-card-title > span:first-child { color: #6e7781; }
+.hud-card-badge, .tech-pill-tag { border-color: #d0d7de; border-radius: 6px; background: #f6f8fa; color: #57606a; }
+.field-label { color: #24292f; font-size: 12px; font-weight: 600; }
+.hud-select, .hud-input { border-color: #d0d7de; border-radius: 6px; color: #24292f; background: #fff; }
+.hud-select:focus, .hud-input:focus, button:focus-visible, summary:focus-visible { outline: 2px solid #54aeff; outline-offset: 2px; }
+.btn-primary-action { border-radius: 6px; background: #1f883d; box-shadow: none; font-weight: 600; }
+.btn-primary-action:hover { background: #1a7f37; }
+.btn-secondary-action, .tool-icon-btn { border-color: #d0d7de; border-radius: 6px; background: #f6f8fa; color: #24292f; }
+.viewer-toolbar, .viewer-bottom-bar { border-color: #d0d7de; background: #f6f8fa; }
+.viewer-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px; }
+.mode-segmented-group, .viewer-utility-tools { display: flex; flex-wrap: wrap; gap: 4px; }
+.mode-tab-btn, .tool-icon-btn { appearance: none; min-height: 30px; padding: 4px 9px; border: 1px solid #d0d7de; border-radius: 6px; background: #fff; color: #57606a; font-size: 12px; }
+.mode-tab-btn.active, .tool-icon-btn.active { background: #0969da; border-color: #0969da; color: #fff; }
+.mode-tab-btn:hover, .tool-icon-btn:hover { border-color: #afb8c1; color: #24292f; }
+.mode-tab-btn.active:hover, .tool-icon-btn.active:hover { color: #fff; }
+.viewer-utility-tools .tool-icon-btn { background: #fff; }
+.viewer-utility-tools .tool-icon-btn.active { background: #0969da; border-color: #0969da; color: #fff; }
+
+.telemetry-details { border-color: #d0d7de; border-radius: 6px; }
+.telemetry-details summary { color: #0969da; font-size: 13px; font-weight: 600; }
+.terminal-box { border-color: #d0d7de; border-radius: 6px; background: #f6f8fa; color: #57606a; }
+
+@media (max-width: 600px) {
+  .header-container, .chandra-workspace { width: min(100% - 32px, 720px); }
+  .header-primary-bar .header-container { min-height: 56px; flex-direction: row; align-items: center; }
+  .header-telemetry-zone { width: auto; flex-direction: row; }
+  .engine-status-pill { display: none; }
+  .header-action-btn { width: auto; }
+  .nav-tab-link { min-height: 54px; padding-inline: 14px; }
+  .nav-tab-link .tab-desc { display: none; }
+  .workspace-intro { flex-direction: column; }
+}

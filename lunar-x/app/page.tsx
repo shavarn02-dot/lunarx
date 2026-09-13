@@ -256,7 +256,7 @@ export default function ChandraSyncDashboard() {
       setExecutionResult(data)
       setTimeout(() => {
         setCurrentStage(6)
-        setLiveLogs(data.logs || [`[DONE] Sub-pixel registration completed in ${data.runtime_sec}s with zero hallucination.`])
+        setLiveLogs(data.logs || [`[DONE] Sub-pixel registration completed in ${data.runtime_sec}s.`])
         setHasRun(true)
         setViewMode('matches')
       }, 500)
@@ -286,7 +286,7 @@ export default function ChandraSyncDashboard() {
           `[MATCH] ${selectedMethod}: Extracted ${found.inliers} verified correspondences.`,
           `[GEOMETRY] MAGSAC++ affine consensus: ${found.inlier_ratio_pct}% inlier ratio.`,
           `[REFINE] CornerSubPix gradient snapping achieved ${found.reproj_rmse} px RMSE.`,
-          `[DONE] Verified mission benchmark metrics active (Air-gapped safe).`
+          `[DONE] Benchmark metrics loaded from the local reference set.`
         ]
       })
       setLiveLogs([
@@ -391,48 +391,16 @@ export default function ChandraSyncDashboard() {
       />
 
       <main className="chandra-workspace">
-        {/* ── 6-STAGE PIPELINE STEPPER ── */}
-        <section className="stepper-panel" aria-label="Pipeline Architecture Stepper">
-          <div className="stepper-header-row">
-            <div className="stepper-badge-title">
-              <span className="accent-dot" />
-              <span>CHANDRA-SYNC 6-STAGE AUTONOMOUS PIPELINE</span>
+        {activeTab === 'console' && (
+          <div className="workspace-intro">
+            <div>
+              <p className="eyebrow">Mission control</p>
+              <h1>Register a lunar image pair</h1>
+              <p>Select source imagery, choose the registration settings, and inspect the resulting evidence.</p>
             </div>
-            <div className="stepper-telemetry-indicator">
-              {isRunning
-                ? `EXECUTING STAGE ${currentStage} OF 6...`
-                : 'Sub-pixel registration ready'}
-            </div>
+            <span className={`workspace-state ${isRunning ? 'is-running' : ''}`}>{isRunning ? 'Running' : 'Ready'}</span>
           </div>
-
-          <div className="stepper-grid">
-            {pipelineStages.map((st) => {
-              const isActive = currentStage === st.stageNum
-              const isDone = currentStage > st.stageNum
-              const isCurrentRunning = isRunning && currentStage === st.stageNum
-              return (
-                <div
-                  key={st.num}
-                  className={`stage-card ${isActive ? 'active' : ''} ${isCurrentRunning ? 'running' : ''} ${isDone ? 'done' : ''}`}
-                  onClick={() => setCurrentStage(st.stageNum)}
-                >
-                  <div className="stage-card-top">
-                    <span className="stage-index">{st.num}</span>
-                    <span className="stage-status-chip">
-                      {isCurrentRunning ? 'Running' : isDone ? 'Complete' : isActive ? 'Current' : 'Queued'}
-                    </span>
-                  </div>
-                  <div className="stage-title">
-                    <TechTooltip term={st.termKey}>
-                      {st.name}
-                    </TechTooltip>
-                  </div>
-                  <div className="stage-sub">{st.sub}</div>
-                </div>
-              )
-            })}
-          </div>
-        </section>
+        )}
 
         {/* ── TAB 1: MISSION CONTROL WORKSPACE ── */}
         {activeTab === 'console' && (
@@ -497,7 +465,7 @@ export default function ChandraSyncDashboard() {
                   <span className="hud-card-title">
                     <span>02</span> · Matching &amp; Geometry Engine
                   </span>
-                  <span className="hud-card-badge">Dual-Path AI + CV</span>
+                  <span className="hud-card-badge">Feature matching</span>
                 </div>
 
                 <div className="control-field">
@@ -729,7 +697,7 @@ export default function ChandraSyncDashboard() {
             <div className="panel-hero-box">
               <h2 className="panel-hero-title">Technical Architecture &amp; 6-Stage End-to-End Pipeline</h2>
               <p className="panel-hero-desc">
-                Mathematical data pipeline bridging raw ISRO PDS4 orbital products to map-ready, sub-pixel registered GeoTIFF rasters with zero hallucination and physical SVD stability guardrails.
+                Data pipeline from ISRO PDS4 orbital products to map-ready, sub-pixel registered GeoTIFF rasters with numerical stability checks.
               </p>
               <div className="tech-pills-row">
                 {['Python 3.10', 'PyTorch 2.2', 'OpenCV 4.9', 'Kornia LoFTR', 'LightGlue', 'FastAPI Async', 'Next.js 16', 'Docker Air-Gapped', 'GDAL/Rasterio', 'PDS4 XML'].map(tech => (
@@ -742,7 +710,7 @@ export default function ChandraSyncDashboard() {
             <div className="hud-card">
               <div className="hud-card-header">
                 <span className="hud-card-title">System Architecture Flowchart (SIH26166 Official)</span>
-                <span className="hud-card-badge">Zero Hallucination Guarantee</span>
+                <span className="hud-card-badge">Reference implementation</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'center', background: '#05080E', padding: 24, borderRadius: 6 }}>
                 <img
@@ -847,7 +815,7 @@ export default function ChandraSyncDashboard() {
               <div className="chart-card">
                 <div className="chart-card-h">
                   <span className="chart-card-title">Runtime Execution Speed (seconds)</span>
-                  <span className="chart-card-val" style={{ color: 'var(--saffron)' }}>SIFT: 0.16s (Real-Time)</span>
+                  <span className="chart-card-val" style={{ color: 'var(--saffron)' }}>SIFT: 0.16s</span>
                 </div>
                 <div className="chart-img-frame">
                   <img src="/api/images/runtime_bar.png" alt="Runtime Speed" />
@@ -868,7 +836,7 @@ export default function ChandraSyncDashboard() {
             {/* 12-Run Benchmark Table */}
             <div className="hud-card">
               <div className="hud-card-header">
-                <span className="hud-card-title">12-Run Verified Benchmark Permutation Table</span>
+                <span className="hud-card-title">Benchmark results</span>
                 <span className="hud-card-badge">Real ISRO Flight Data</span>
               </div>
               <div className="benchmark-table-wrapper">
@@ -1084,7 +1052,7 @@ export default function ChandraSyncDashboard() {
                 </div>
                 <input
                   type="text"
-                  placeholder="🔍 Search any term (e.g. LoFTR, SIFT, RMSE, CLAHE)..."
+                  placeholder="Search terms such as LoFTR, SIFT, RMSE, or CLAHE"
                   value={glossarySearch}
                   onChange={(e) => setGlossarySearch(e.target.value)}
                   className="hud-input"
