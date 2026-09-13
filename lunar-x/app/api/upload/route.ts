@@ -11,7 +11,9 @@ export async function POST(req: NextRequest) {
     }
 
     const backendUrl =
-      process.env.LUNARX_BACKEND_URL || 'https://born-heated-specially-removing.trycloudflare.com'
+      (process.env.LUNARX_BACKEND_URL && !process.env.LUNARX_BACKEND_URL.includes('onrender.com'))
+        ? process.env.LUNARX_BACKEND_URL
+        : 'https://born-heated-specially-removing.trycloudflare.com'
 
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 45000)

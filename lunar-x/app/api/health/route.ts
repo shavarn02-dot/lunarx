@@ -4,7 +4,9 @@ export const dynamic = 'force-dynamic'
 
 export async function GET() {
   const backendUrl =
-    process.env.LUNARX_BACKEND_URL || 'https://born-heated-specially-removing.trycloudflare.com'
+    (process.env.LUNARX_BACKEND_URL && !process.env.LUNARX_BACKEND_URL.includes('onrender.com'))
+      ? process.env.LUNARX_BACKEND_URL
+      : 'https://born-heated-specially-removing.trycloudflare.com'
 
   try {
     const controller = new AbortController()
