@@ -11,7 +11,7 @@ import {AdvancedDetails} from '../components/advanced-details'
 import {Glossary} from '../components/glossary'
 import type {Config,ImageInfo,Pair,RegistrationResult} from '../components/types'
 
-const API=process.env.NEXT_PUBLIC_LUNARX_API_URL||'http://127.0.0.1:8000'
+const API=process.env.NEXT_PUBLIC_LUNARX_API_URL||''
 const fallback:Pair={id:'default_tmc',name:'TMC crater scene',source_img:'ch2_tmc_crater_scene_src.png',reference_img:'ch2_tmc_crater_scene_ref.png'}
 const blank=(filename:string):ImageInfo=>({filename,preview:`/images/${filename}`})
 export default function Page(){const [online,setOnline]=useState(false);const [pairs,setPairs]=useState<Pair[]>([fallback]);const [pairId,setPairId]=useState(fallback.id);const [source,setSource]=useState(blank(fallback.source_img));const [reference,setReference]=useState(blank(fallback.reference_img));const [uploading,setUploading]=useState<'source'|'reference'|null>(null);const [config,setConfig]=useState<Config>({method:'loftr',preprocessing:'clahe',model_type:'affine',subpixel:true,spatial_filter:true,reproj_thresh:3});const [result,setResult]=useState<RegistrationResult|null>(null);const [running,setRunning]=useState(false);const [error,setError]=useState('');
