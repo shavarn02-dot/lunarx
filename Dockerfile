@@ -6,10 +6,11 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# System dependencies for OpenCV image processing
+# System dependencies for OpenCV & git for LightGlue
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Layer 1: Cached dependencies (only rebuilds if requirements.txt changes)
