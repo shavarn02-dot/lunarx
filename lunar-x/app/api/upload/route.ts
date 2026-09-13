@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData()
@@ -13,35 +15,32 @@ export async function POST(req: NextRequest) {
       (process.env.NODE_ENV === 'production' || process.env.VERCEL
         ? 'https://lunarx-backend.onrender.com'
         : 'http://127.0.0.1:8000')
-    try {
-      const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 30000)
-      const forwardData = new FormData()
-      forwardData.append('file', file)
-      const res = await fetch(`${backendUrl}/api/upload`, {
-        method: 'POST',
-        body: forwardData,
-        signal: controller.signal,
-      })
-      clearTimeout(timeout)
-      if (res.ok) {
-        const data = await res.json()
-        return NextResponse.json({ ...data, backend: true })
-      }
-    } catch (e) {
-      // Backend offline or running on Vercel
+
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 45000)
+    const forwardData = new FormData()
+    forwardData.append('file', file)
+    const res = await fetch(`${backendUrl}/api/upload`, {
+      method: 'POST',
+      body: forwardData,
+      signal: controller.signal,
+    })
+    clearTimeout(timeout)
+
+    if (res.ok) {
+      const data = await res.json()
+      return NextResponse.json(data)
     }
 
-    // Fallback: tell frontend to keep the local blob preview
-    const filename = `upload_${Date.now()}_upload_src_${file.name}`
-    return NextResponse.json({
-      filename,
-      url: '',
-      bytes: file.size,
-      backend: false,
-      local_only: true,
-    })
+    const errDetail = await res.text().catch(() => '')
+    return NextResponse.json(
+      { error: `Backend upload failed (${res.status}): ${errDetail}` },
+      { status: res.status }
+    )
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message || 'Upload failed' }, { status: 500 })
+    return NextResponse.json(
+      { error: `Upload pipeline error: ${err?.message || 'Connection failed'}` },
+      { status: 503 }
+    )
   }
 }
