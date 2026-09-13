@@ -392,9 +392,9 @@ async def post_register(request: Request):
     try:
         artefacts = {
             "registered": out.warped_image,
-            "matches": _bgr_to_rgb(out.visualization_matches),
-            "checkerboard": _bgr_to_rgb(out.visualization_checkerboard),
-            "difference": _bgr_to_rgb(out.visualization_difference),
+            "matches": out.visualization_matches,
+            "checkerboard": out.visualization_checkerboard,
+            "difference": out.visualization_difference,
         }
         for key, img in artefacts.items():
             if img is not None:
@@ -417,15 +417,20 @@ async def post_register(request: Request):
         except Exception:
             return None
 
-    # Format transformation matrix
+    # Format transformation matrix (active matrix: refined if subpixel improved, else robust)
     tx_matrix = None
-    if getattr(out, "robust_result", None) is not None:
+    mat = None
+    if getattr(out, "subpixel_result", None) is not None and getattr(out.subpixel_result, "improved", False):
+        mat = getattr(out.subpixel_result, "refined_matrix", None)
+    if mat is None and getattr(out, "robust_result", None) is not None:
         mat = getattr(out.robust_result, "matrix", None)
-        if mat is not None:
-            try:
-                tx_matrix = [[float(v) for v in row] for row in mat]
-            except Exception:
-                tx_matrix = None
+    if mat is not None:
+        try:
+            tx_matrix = [[float(v) for v in row] for row in mat]
+        except Exception:
+            tx_matrix = None
+
+    effective_rmse = _num(rep.reprojection_rmse_refined) if rep.reprojection_rmse_refined is not None else _num(rep.reprojection_rmse_coarse)
 
     metrics_payload = {
         # types.ts Metrics interface fields:
@@ -434,6 +439,7 @@ async def post_register(request: Request):
         "inlier_ratio_pct": round(rep.inlier_ratio * 100.0, 2),
         "reproj_rmse_coarse": _num(rep.reprojection_rmse_coarse),
         "reproj_rmse_refined": _num(rep.reprojection_rmse_refined),
+        "effective_rmse": effective_rmse,
         "spatial_coverage_pct": round(rep.spatial_coverage_percent, 2),
         "grid_occupancy_pct": round((rep.occupied_cells / max(1, rep.total_cells)) * 100.0, 2) if rep.total_cells else 100.0,
         "photometric_ncc": round(float(rep.photometric_ncc), 4),
@@ -461,7 +467,12 @@ async def post_register(request: Request):
         f"[{estimator}] Robust outlier rejection converged with {rep.inlier_match_count} inliers ({rep.inlier_ratio * 100:.1f}%).",
     ]
     if subpixel:
-        logs.append(f"[SUBPIXEL] Sub-pixel refinement optimized RMSE to {_num(rep.reprojection_rmse_refined)} px.")
+        if getattr(rep, "subpixel_improved", False):
+            logs.append(f"[SUBPIXEL] Sub-pixel refinement optimized RMSE to {_num(rep.reprojection_rmse_refined)} px.")
+        else:
+            logs.append(f"[SUBPIXEL] Sub-pixel refinement preserved robust matrix with RMSE {_num(rep.reprojection_rmse_refined)} px.")
+    else:
+        logs.append(f"[REGISTRATION] Active matrix reprojection RMSE: {_num(rep.reprojection_rmse_refined)} px.")
     logs.append(f"[STATUS] Pipeline completed in {round(out.total_runtime_sec, 3)} s with status {rep.status}.")
 
     return {

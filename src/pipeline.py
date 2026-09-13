@@ -273,10 +273,12 @@ def run_registration_pipeline(
         )
         if subpixel_res.improved:
             final_matrix = subpixel_res.refined_matrix
+            rmse_refined = subpixel_res.rmse_refined
+            delta_rmse = subpixel_res.delta_rmse
         else:
             final_matrix = robust_res.matrix
-        rmse_refined = subpixel_res.rmse_refined
-        delta_rmse = subpixel_res.delta_rmse
+            rmse_refined = robust_res.reproj_rmse
+            delta_rmse = 0.0
         subpixel_improved = subpixel_res.improved
 
     # Step 7: Warp Source Image into Reference Frame

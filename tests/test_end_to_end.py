@@ -33,6 +33,8 @@ def test_end_to_end_real_chandrayaan_sift():
     assert report.status == "SUCCESS"
     assert report.inlier_match_count > 100, f"Expected > 100 inliers, got {report.inlier_match_count}"
     assert report.reprojection_rmse_coarse < 1.0, f"Expected coarse RMSE < 1.0 px, got {report.reprojection_rmse_coarse}"
+    assert report.reprojection_rmse_refined < 1.0, f"Expected refined RMSE < 1.0 px, got {report.reprojection_rmse_refined}"
+    assert report.reprojection_rmse_refined <= report.reprojection_rmse_coarse
     assert report.spatial_coverage_percent > 50.0, f"Expected spatial coverage > 50%, got {report.spatial_coverage_percent}"
     assert report.grid_occupancy_percent > 75.0, f"Expected grid occupancy > 75%, got {report.grid_occupancy_percent}"
     assert report.photometric_ncc > 0.70, f"Expected photometric NCC > 0.70, got {report.photometric_ncc}"
@@ -67,5 +69,7 @@ def test_end_to_end_real_chandrayaan_superpoint_lightglue():
     assert report.status == "SUCCESS"
     assert report.inlier_match_count > 50
     assert report.reprojection_rmse_coarse < 1.5
+    assert report.reprojection_rmse_refined < 1.5
+    assert report.reprojection_rmse_refined <= report.reprojection_rmse_coarse
     assert report.spatial_coverage_percent > 50.0
     assert report.photometric_ncc > 0.70

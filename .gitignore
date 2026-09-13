@@ -39,6 +39,12 @@ out/
 
 # Compressed Archives / Backups
 *.zip
+*.pdf
+*.pptx
+data/videos/
+data/ppt_graphs/
+data/prototype_screenshots/
+data/*.html
 
 # OS Files & Logs
 Thumbs.db
@@ -51,6 +57,8 @@ lunar-x/public/images/run_*
 lunar-x/public/images/*_clahe_1*
 lunar-x/public/images/*_gradient_1*
 lunar-x/public/images/*_raw_1*
+lunar-x/public/images/*_phase_congruency_1*
+lunar-x/public/images/*_1789*
 # Keep benchmark viz images (no timestamp) for Vercel static serving
 data/outputs/*.png
 data/uploads/
