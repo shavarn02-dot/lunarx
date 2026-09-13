@@ -188,18 +188,12 @@ def get_root() -> dict:
 @app.get("/api/health")
 @app.head("/api/health")
 def get_health() -> dict:
-    try:
-        import torch
-        cuda = torch.cuda.is_available()
-        device = torch.cuda.get_device_name(0) if cuda else "CPU (Optimized SIMD)"
-    except Exception:
-        cuda, device = False, "CPU (Optimized SIMD)"
     return {
         "status": "ONLINE",
         "service": "Chandrayaan-2 Registration Engine (SIH26166)",
-        "device": device,
-        "cuda": cuda,
-        "cuda_active": cuda,
+        "device": "CPU (Optimized SIMD)",
+        "cuda": False,
+        "cuda_active": False,
         "matchers": MATCHERS,
         "preprocessing": PREPROCESSING,
         "models": MODELS,

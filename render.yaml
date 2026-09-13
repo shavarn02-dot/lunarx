@@ -15,4 +15,4 @@ services:
         value: "10000"
       - key: PIP_CACHE_DIR
         value: "/opt/render/project/.cache/pip"
-    healthCheckPath: /api/health
+    healthCheckPath: /
