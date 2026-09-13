@@ -172,8 +172,21 @@ def _bgr_to_rgb(img):
     return img
 
 
-# ---------------------------------------------------------------- health
+# ---------------------------------------------------------------- root & health
+@app.get("/")
+@app.head("/")
+def get_root() -> dict:
+    return {
+        "status": "ONLINE",
+        "service": "Chandrayaan-2 Registration API (SIH26166)",
+        "docs": "/docs",
+        "health": "/api/health",
+        "version": "3.1.0"
+    }
+
+
 @app.get("/api/health")
+@app.head("/api/health")
 def get_health() -> dict:
     try:
         import torch
