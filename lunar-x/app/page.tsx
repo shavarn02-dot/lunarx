@@ -401,7 +401,7 @@ export default function ChandraSyncDashboard() {
             <div className="stepper-telemetry-indicator">
               {isRunning
                 ? `EXECUTING STAGE ${currentStage} OF 6...`
-                : 'PIPELINE NOMINAL · SUB-PIXEL READY (<0.15 PX RMSE)'}
+                : 'Sub-pixel registration ready'}
             </div>
           </div>
 
@@ -419,7 +419,7 @@ export default function ChandraSyncDashboard() {
                   <div className="stage-card-top">
                     <span className="stage-index">{st.num}</span>
                     <span className="stage-status-chip">
-                      {isCurrentRunning ? 'RUNNING' : isDone ? 'PASS' : isActive ? 'ACTIVE' : 'STANDBY'}
+                      {isCurrentRunning ? 'Running' : isDone ? 'Complete' : isActive ? 'Current' : 'Queued'}
                     </span>
                   </div>
                   <div className="stage-title">
@@ -470,9 +470,9 @@ export default function ChandraSyncDashboard() {
                 </div>
 
                 <div className="target-meta-box">
-                  <div><b>Sensor:</b> <span>{activePair.sensor}</span> &middot; <code>{activePair.resolution}</code></div>
+                  <div><b>Sensor:</b> <span>{activePair.sensor}</span><span className="meta-separator"> / </span><code>{activePair.resolution}</code></div>
                   <div><b>Orbit:</b> <span>{activePair.orbit}</span></div>
-                  <div><b>Solar Geometry:</b> <span style={{ color: 'var(--saffron)' }}>El: {activePair.solar_elevation} &middot; Az: {activePair.solar_azimuth}</span></div>
+                  <div><b>Solar Geometry:</b> <span style={{ color: 'var(--saffron)' }}>El: {activePair.solar_elevation}<span className="meta-separator"> / </span>Az: {activePair.solar_azimuth}</span></div>
                   <div style={{ marginTop: 4, color: 'var(--text-dim)' }}>{activePair.description}</div>
                 </div>
 
@@ -598,7 +598,7 @@ export default function ChandraSyncDashboard() {
                     onClick={handleRunRegistration}
                     disabled={isRunning}
                   >
-                    {isRunning ? 'EXECUTING 6-STAGE ENGINE...' : 'RUN CHANDRA-SYNC ENGINE 🚀'}
+                    {isRunning ? 'Executing six-stage engine...' : 'Run Chandra-sync engine'}
                   </button>
 
                   <button
@@ -606,7 +606,7 @@ export default function ChandraSyncDashboard() {
                     className="btn-secondary-action"
                     onClick={handleExport}
                   >
-                    📥 Export SIH26166 Mission Verification Report (CSV)
+                    Export mission verification report (CSV)
                   </button>
                 </div>
               </div>
@@ -674,49 +674,51 @@ export default function ChandraSyncDashboard() {
                 handleImgError={handleImgError}
               />
 
-              {/* 2-Column Split: Telemetry Terminal & Mission Geometry HUD */}
-              <div className="telemetry-split-grid">
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
-                    PIPELINE TELEMETRY EXECUTION LOG
+              <details className="telemetry-details">
+                <summary>Show execution telemetry and orbital geometry</summary>
+                <div className="telemetry-split-grid">
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
+                      Pipeline telemetry execution log
+                    </div>
+                    <div className="terminal-box">
+                      {liveLogs.length > 0
+                        ? liveLogs.join('\n')
+                        : 'Chandra-sync engine initialized.\nSelect a target pair and run the engine.\nFastAPI Engine: http://127.0.0.1:8000/api/register'}
+                    </div>
                   </div>
-                  <div className="terminal-box">
-                    {liveLogs.length > 0
-                      ? liveLogs.join('\n')
-                      : 'Chandra-sync engine initialized.\nSelect target pair and press "RUN CHANDRA-SYNC ENGINE 🚀".\nFastAPI Engine: http://127.0.0.1:8000/api/register'}
-                  </div>
-                </div>
 
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
-                    PDS4 ORBITAL GEOMETRY &amp; MATRIX HUD
-                  </div>
-                  <div className="hud-card" style={{ padding: 14, marginBottom: 0 }}>
-                    <div className="hud-table-data">
-                      <div className="hud-data-row">
-                        <span className="data-k">Target Terrain:</span>
-                        <span className="data-v">{activePair.name.split('(')[0]}</span>
-                      </div>
-                      <div className="hud-data-row">
-                        <span className="data-k">Acquisition Pass:</span>
-                        <span className="data-v cyan">{activePair.orbit}</span>
-                      </div>
-                      <div className="hud-data-row">
-                        <span className="data-k">Solar Angles:</span>
-                        <span className="data-v saffron">
-                          Az: {activePair.solar_azimuth || '42.8°'} &middot; El: {activePair.solar_elevation || '8.4°'}
-                        </span>
-                      </div>
-                      <div className="hud-data-row">
-                        <span className="data-k">
-                          <TechTooltip term="svd">Matrix Stability κ(A):</TechTooltip>
-                        </span>
-                        <span className="data-v green">κ(A) &lt; 10⁵ (Physical Invariant)</span>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
+                      PDS4 orbital geometry and matrix
+                    </div>
+                    <div className="hud-card" style={{ padding: 14, marginBottom: 0 }}>
+                      <div className="hud-table-data">
+                        <div className="hud-data-row">
+                          <span className="data-k">Target terrain:</span>
+                          <span className="data-v">{activePair.name.split('(')[0]}</span>
+                        </div>
+                        <div className="hud-data-row">
+                          <span className="data-k">Acquisition pass:</span>
+                          <span className="data-v cyan">{activePair.orbit}</span>
+                        </div>
+                        <div className="hud-data-row">
+                          <span className="data-k">Solar angles:</span>
+                          <span className="data-v saffron">
+                            Az: {activePair.solar_azimuth || '42.8°'}<span className="meta-separator"> / </span>El: {activePair.solar_elevation || '8.4°'}
+                          </span>
+                        </div>
+                        <div className="hud-data-row">
+                          <span className="data-k">
+                            <TechTooltip term="svd">Matrix stability κ(A):</TechTooltip>
+                          </span>
+                          <span className="data-v green">κ(A) &lt; 10⁵ (physical invariant)</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </details>
             </section>
           </div>
         )}
@@ -1002,7 +1004,7 @@ export default function ChandraSyncDashboard() {
         )}
 
         {/* ── TAB 5: MISSION IMPACT & USE CASES (SLIDE 5) ── */}
-        {activeTab === 'usecases' && (
+        {activeTab === 'information' && (
           <div className="tab-content-panel">
             <div className="panel-hero-box">
               <h2 className="panel-hero-title">Mission Impact &amp; Downstream Space Applications</h2>
@@ -1070,7 +1072,7 @@ export default function ChandraSyncDashboard() {
         )}
 
         {/* ── TAB 6: INTERACTIVE NON-TECH GLOSSARY FOR JUDGES ── */}
-        {activeTab === 'glossary' && (
+        {activeTab === 'information' && (
           <div className="tab-content-panel">
             <div className="panel-hero-box">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
