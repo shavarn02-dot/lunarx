@@ -1,6 +1,0 @@
-{
-  "framework": "nextjs",
-  "installCommand": "cd lunar-x && npm install --no-audit --no-fund",
-  "buildCommand": "cd lunar-x && npm run build",
-  "outputDirectory": "lunar-x/.next"
-}
