@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server'
 
 export async function GET() {
-  const backendUrl = process.env.LUNARX_BACKEND_URL || 'http://127.0.0.1:8000'
+  const backendUrl =
+    process.env.LUNARX_BACKEND_URL ||
+    (process.env.NODE_ENV === 'production' || process.env.VERCEL
+      ? 'https://lunarx-backend.onrender.com'
+      : 'http://127.0.0.1:8000')
   try {
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 1200)
+    const timeout = setTimeout(() => controller.abort(), 6000)
     const res = await fetch(`${backendUrl}/api/health`, {
       signal: controller.signal,
       cache: 'no-store',

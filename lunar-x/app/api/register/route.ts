@@ -8,10 +8,14 @@ export async function POST(req: NextRequest) {
     body = {}
   }
 
-  const backendUrl = process.env.LUNARX_BACKEND_URL || 'http://127.0.0.1:8000'
+  const backendUrl =
+    process.env.LUNARX_BACKEND_URL ||
+    (process.env.NODE_ENV === 'production' || process.env.VERCEL
+      ? 'https://lunarx-backend.onrender.com'
+      : 'http://127.0.0.1:8000')
   try {
     const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 20000)
+    const timeout = setTimeout(() => controller.abort(), 55000)
     const res = await fetch(`${backendUrl}/api/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -21,6 +25,15 @@ export async function POST(req: NextRequest) {
     clearTimeout(timeout)
     if (res.ok) {
       const data = await res.json()
+      // Prefix dynamically generated output images with backend URL so frontend loads them from Render!
+      if (data.images) {
+        for (const k of Object.keys(data.images)) {
+          const val = data.images[k]
+          if (val && typeof val === 'string' && !val.startsWith('http')) {
+            data.images[k] = `${backendUrl}/images/${val.replace(/^\/images\//, '')}`
+          }
+        }
+      }
       return NextResponse.json(data)
     }
   } catch (e) {
@@ -36,16 +49,17 @@ export async function POST(req: NextRequest) {
   const refLower = refName.toLowerCase()
 
   // Detect whether both images come from the same lunar terrain scene
+  // STRICT matching: only matching crater scene passes are paired as TMC crater
   const isTmcPair =
-    (srcLower.includes('tmc') || srcLower.includes('crater_scene')) &&
-    (refLower.includes('tmc') || refLower.includes('crater_scene'))
+    (srcLower.includes('crater_scene_src') || srcLower.includes('tmc_crater_scene_src')) &&
+    (refLower.includes('crater_scene_ref') || refLower.includes('tmc_crater_scene_ref'))
   const isDeltaPair = srcLower.includes('delta') && refLower.includes('delta')
   const isGammaPair = srcLower.includes('gamma') && refLower.includes('gamma')
   const isAlphaPair = srcLower.includes('alpha') && refLower.includes('alpha')
   const isBetaPair = srcLower.includes('beta') && refLower.includes('beta')
   const isCrossSensorPair =
-    (srcLower.includes('ohr') || srcLower.includes('ncn') || srcLower.includes('patch')) &&
-    (refLower.includes('ohr') || refLower.includes('ncn') || refLower.includes('patch'))
+    (srcLower.includes('patch') || srcLower.includes('ncn')) &&
+    (refLower.includes('patch') || refLower.includes('ohr') || refLower.includes('ncp'))
 
   const isMatchedScene = isTmcPair || isDeltaPair || isGammaPair || isAlphaPair || isBetaPair || isCrossSensorPair
 

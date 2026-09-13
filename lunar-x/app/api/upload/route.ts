@@ -8,10 +8,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
     }
 
-    const backendUrl = process.env.LUNARX_BACKEND_URL || 'http://127.0.0.1:8000'
+    const backendUrl =
+      process.env.LUNARX_BACKEND_URL ||
+      (process.env.NODE_ENV === 'production' || process.env.VERCEL
+        ? 'https://lunarx-backend.onrender.com'
+        : 'http://127.0.0.1:8000')
     try {
       const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 15000)
+      const timeout = setTimeout(() => controller.abort(), 30000)
       const forwardData = new FormData()
       forwardData.append('file', file)
       const res = await fetch(`${backendUrl}/api/upload`, {
