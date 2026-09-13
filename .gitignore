@@ -46,9 +46,12 @@ Desktop.ini
 .DS_Store
 *.log
 
-# Temporary run results
+# Temporary run results (timestamped)
 lunar-x/public/images/run_*
-lunar-x/public/images/*_to_*
+lunar-x/public/images/*_clahe_1*
+lunar-x/public/images/*_gradient_1*
+lunar-x/public/images/*_raw_1*
+# Keep benchmark viz images (no timestamp) for Vercel static serving
 data/outputs/*.png
 data/uploads/
 *.tsbuildinfo

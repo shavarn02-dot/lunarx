@@ -1,0 +1,16 @@
+# Render Blueprint — Chandrayaan-2 LunarX Backend
+# https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: lunarx-backend
+    runtime: python
+    repo: https://github.com/shavarn02-dot/lunarx.git
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.api_server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: PORT
+        value: "10000"
+    healthCheckPath: /api/health
