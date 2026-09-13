@@ -61,3 +61,8 @@ lunarx-scientific-redesign/
 # IDE & Editor folders
 .vscode/
 .idea/
+
+# Binaries & Uploads
+cloudflared.exe
+lunar-x/public/images/upload_*
+

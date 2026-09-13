@@ -11,6 +11,10 @@ const nextConfig = {
     ],
     quietDeps: true,
   },
+  experimental: {
+    cpus: 1,
+    workerThreads: false,
+  },
 }
 
 export default nextConfig

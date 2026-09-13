@@ -17,8 +17,9 @@ class LoFTRMatcher(BaseMatcher):
     def __init__(self, params: Optional[Dict[str, Any]] = None):
         super().__init__("LoFTR", params)
         self.pretrained = self.params.get("pretrained", "outdoor")
-        self.max_dim = self.params.get("max_dim", 840)
         self.device = "cpu"
+        # Bound max dimension to 480 on CPU to ensure cross-attention matrix fits comfortably in 512MB RAM
+        self.max_dim = int(self.params.get("max_dim", 480))
         self._initialized = False
         self._matcher = None
 
@@ -28,7 +29,6 @@ class LoFTRMatcher(BaseMatcher):
         import torch
         import ssl
         try:
-            # Bypass Windows missing root cert for academic mirror download
             ssl._create_default_https_context = ssl._create_unverified_context
         except Exception:
             pass
@@ -37,7 +37,9 @@ class LoFTRMatcher(BaseMatcher):
 
         self.torch = torch
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        logger.info(f"Initializing LoFTR ({self.pretrained}) on {self.device}...")
+        if self.device == "cuda":
+            self.max_dim = int(self.params.get("max_dim", 840))
+        logger.info(f"Initializing LoFTR ({self.pretrained}) on {self.device} with max_dim={self.max_dim}...")
         self._matcher = LoFTR(pretrained=self.pretrained).eval().to(self.device)
         self._initialized = True
 
@@ -89,11 +91,17 @@ class LoFTRMatcher(BaseMatcher):
 
         input_dict = {"image0": t_src, "image1": t_ref}
 
-        with torch.no_grad():
+        with torch.inference_mode():
             corr = self._matcher(input_dict)
-            kpts0 = corr["keypoints0"].cpu().numpy()
-            kpts1 = corr["keypoints1"].cpu().numpy()
-            confs = corr["confidence"].cpu().numpy()
+            kpts0 = corr["keypoints0"].detach().cpu().numpy()
+            kpts1 = corr["keypoints1"].detach().cpu().numpy()
+            confs = corr["confidence"].detach().cpu().numpy()
+            del corr
+            del t_src
+            del t_ref
+            del input_dict
+            import gc
+            gc.collect()
 
         # Rescale keypoint coordinates back to original image space
         if len(kpts0) > 0:
