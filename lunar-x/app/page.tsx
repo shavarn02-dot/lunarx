@@ -392,14 +392,17 @@ export default function ChandraSyncDashboard() {
 
       <main className="chandra-workspace">
         {activeTab === 'console' && (
-          <div className="workspace-intro">
-            <div>
-              <p className="eyebrow">Mission control</p>
-              <h1>Register a lunar image pair</h1>
-              <p>Select source imagery, choose the registration settings, and inspect the resulting evidence.</p>
-            </div>
-            <span className={`workspace-state ${isRunning ? 'is-running' : ''}`}>{isRunning ? 'Running' : 'Ready'}</span>
-          </div>
+          <>
+            <section className="lunar-hero" aria-labelledby="hero-title">
+              <div><p>CHANDRAYAAN-2</p><h1 id="hero-title">LUNARX</h1><h2>Autonomous lunar image registration &amp; analysis</h2><span>Precise alignment. Reliable insights. Supporting planetary exploration.</span></div>
+              <blockquote>“From images<br />to intelligence.”</blockquote>
+            </section>
+            <section className="registration-steps" aria-label="Registration progress">
+              {[['1', 'Upload images', 'Provide target and reference'], ['2', 'Feature matching', 'Detect and match keypoints'], ['3', 'Geometric alignment', 'Estimate transformation'], ['4', 'Refine & generate', 'Sub-pixel refinement']].map(([number, title, detail], index) => (
+                <div className={`registration-step ${index === 0 ? 'active' : ''}`} key={number}><span>{number}</span><div><strong>{title}</strong><small>{detail}</small></div></div>
+              ))}
+            </section>
+          </>
         )}
 
         {/* ── TAB 1: MISSION CONTROL WORKSPACE ── */}
@@ -409,6 +412,10 @@ export default function ChandraSyncDashboard() {
             <aside className="controls-column">
               {/* Card 1: Data Ingestion */}
               <div className="hud-card">
+                <div className="image-pair-preview">
+                  <figure><figcaption>Target image</figcaption><img src={getImageUrl(activePair.source_img)} alt="Target lunar image" onError={(e) => handleImgError(e, activePair.source_img)} /></figure>
+                  <figure><figcaption>Reference image</figcaption><img src={getImageUrl(activePair.reference_img)} alt="Reference lunar image" onError={(e) => handleImgError(e, activePair.reference_img)} /></figure>
+                </div>
                 <div className="hud-card-header">
                   <span className="hud-card-title">
                     <span>01</span> · Target Data Ingestion

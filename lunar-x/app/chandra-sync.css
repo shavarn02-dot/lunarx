@@ -271,3 +271,97 @@ html body, .chandra-app { background: #f6f8fa !important; color: #24292f !import
   .nav-tab-link .tab-desc { display: none; }
   .workspace-intro { flex-direction: column; }
 }
+
+/* LUNARX product shell */
+html body { background: #f4f7fb !important; color: #172b4d !important; }
+.chandra-app { min-height: 100vh; background: #f4f7fb !important; }
+.chandra-header { position: relative; z-index: 5; margin-left: 240px; background: #fff; border-bottom: 1px solid #dfe7f1; }
+.header-primary-bar { background: #fff; border: 0; }
+.header-primary-bar .header-container { width: auto; min-height: 84px; padding: 0 30px; }
+.product-lockup { gap: 12px; }
+.product-mark { display: grid; width: 52px; height: 52px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #d4dbe2, #8793a1 55%, #4f5b67); color: transparent; box-shadow: inset -6px -5px 10px rgba(18,36,55,.24); }
+.product-name { display: block; color: #10264b; font-size: 28px; letter-spacing: .08em; line-height: 1; }
+.product-subtitle { display: block; margin-top: 5px; color: #60769a; font-size: 13px; }
+.institution-lockup { display: flex; align-items: center; gap: 14px; margin-left: auto; color: #172b4d; }
+.isro-wordmark { color: #e66a1f; font-size: 17px; font-weight: 800; }
+.institution-lockup strong, .institution-lockup small { display: block; }
+.institution-lockup strong { font-size: 14px; }
+.institution-lockup small { margin-top: 4px; color: #60769a; font-size: 11px; }
+.header-telemetry-zone { margin-left: 28px; }
+.engine-status-pill { display: none; }
+.header-action-btn { min-height: 42px; padding: 9px 16px; border-color: #c8d8ef; border-radius: 7px; background: #fff; color: #1458c4; font-size: 13px; }
+.lunar-sidebar { position: fixed; inset: 0 auto 0 0; z-index: 10; display: flex; width: 240px; flex-direction: column; justify-content: space-between; padding: 102px 12px 28px; border-right: 1px solid #e2eaf3; background: #f8fbff; }
+.sidebar-link { display: flex; width: 100%; align-items: center; gap: 13px; min-height: 45px; padding: 9px 13px; border: 0; border-radius: 7px; background: transparent; color: #314b74; font-size: 15px; text-align: left; }
+.sidebar-link:hover { background: #edf4fd; color: #0f5ccc; }
+.sidebar-link.active { background: #e6f0ff; color: #145dcc; font-weight: 600; }
+.sidebar-icon { width: 18px; color: currentColor; font-size: 19px; text-align: center; }
+.sidebar-quote { padding: 0 22px; color: #617596; font-size: 14px; font-style: italic; line-height: 1.45; }
+.sidebar-quote span { display: block; margin-top: 8px; text-align: right; font-style: normal; }
+.chandra-workspace { width: auto; max-width: none; margin-left: 240px; padding: 20px 16px 48px; }
+.lunar-hero { display: flex; min-height: 166px; align-items: center; justify-content: space-between; gap: 24px; padding: 28px 34px; border-radius: 8px; background: linear-gradient(90deg, rgba(5,16,31,.98) 0%, rgba(8,24,43,.88) 54%, rgba(8,22,37,.62) 100%), url('/lunar-hero.png') center/cover; color: #fff; overflow: hidden; }
+.lunar-hero p { margin: 0 0 6px; font-size: 14px; font-weight: 600; letter-spacing: .12em; }
+.lunar-hero h1 { margin: 0; font-size: 38px; letter-spacing: .08em; line-height: 1; }
+.lunar-hero h2 { margin: 5px 0 4px; font-size: 21px; font-weight: 500; }
+.lunar-hero span { color: #c6d2e2; font-size: 14px; }
+.lunar-hero blockquote { margin: 0 12px 0 auto; color: #f5f8fc; font-size: 15px; font-style: italic; line-height: 1.5; }
+.registration-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin: 14px 0; padding: 16px 72px; border: 1px solid #dfe7f1; border-radius: 8px; background: #fff; }
+.registration-step { position: relative; display: flex; align-items: center; gap: 12px; color: #243b63; }
+.registration-step:not(:last-child)::after { content: ''; position: absolute; right: -10px; width: 34px; height: 1px; background: #d7e1ee; }
+.registration-step > span { display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid #cbd7e7; border-radius: 50%; color: #243b63; font-size: 15px; }
+.registration-step.active > span { border-color: #2167d5; background: #2167d5; color: #fff; }
+.registration-step strong, .registration-step small { display: block; }
+.registration-step strong { font-size: 13px; }
+.registration-step small { margin-top: 3px; color: #617596; font-size: 11px; }
+.mission-grid { grid-template-columns: minmax(320px, 42%) minmax(0, 58%); gap: 14px; }
+.hud-card, .cv-viewer-panel, .tab-content-panel, .panel-hero-box, .feature-box-panel, .chart-card, .kpi-tile { border-color: #dfe7f1 !important; border-radius: 8px !important; background: #fff !important; box-shadow: 0 2px 8px rgba(26,61,103,.04) !important; }
+.hud-card { padding: 16px; }
+.image-pair-preview { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: -2px -2px 14px; }
+.image-pair-preview figure { min-width: 0; margin: 0; padding: 8px; border: 1px solid #dfe7f1; border-radius: 6px; background: #f8fbff; }
+.image-pair-preview figcaption { margin-bottom: 6px; color: #1b3564; font-size: 11px; font-weight: 600; }
+.image-pair-preview img { display: block; width: 100%; aspect-ratio: 1.2; object-fit: cover; border-radius: 4px; background: #d8dee5; }
+.hud-card-title { color: #12336c !important; font-size: 16px; }
+.hud-card-title > span:first-child { color: #2167d5; }
+.hud-card-badge { color: #2167d5; background: #eff6ff; border-color: #cfe0f6; }
+.control-field { margin-top: 13px; }
+.hud-select, .hud-input { min-height: 40px; border-color: #ccd9e8; border-radius: 6px; background: #fff; color: #1d355d; }
+.target-meta-box { border-color: #e2eaf3; border-radius: 6px; background: #f8fbff; color: #425a7c; }
+.field-label { color: #1b3564; }
+.algo-switcher-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.algo-card-btn { border-color: #dce5ef; border-radius: 6px; background: #fff; }
+.algo-card-btn.selected { border-color: #2471dc; background: #f0f6ff; box-shadow: inset 3px 0 #2471dc; }
+.algo-btn-title { color: #1b3564; }
+.btn-primary-action { min-height: 42px; border-radius: 6px; background: #2167d5; }
+.btn-primary-action:hover { background: #1458c4; }
+.btn-secondary-action { min-height: 40px; border-color: #cbd9eb; background: #fff; color: #2167d5; }
+.kpi-row { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.kpi-tile { padding: 14px; }
+.kpi-tile.cyan, .kpi-tile.emerald, .kpi-tile.saffron, .kpi-tile.purple { border-top: 3px solid #2167d5 !important; }
+.kpi-label { color: #60769a; }
+.kpi-value { color: #123f9b; }
+.viewer-toolbar, .viewer-bottom-bar { background: #f8fbff; border-color: #dfe7f1; }
+.mode-tab-btn.active, .tool-icon-btn.active { background: #2167d5; border-color: #2167d5; }
+.telemetry-details { margin-top: 14px; }
+
+@media (max-width: 900px) {
+  .chandra-header { margin-left: 0; }
+  .lunar-sidebar { position: static; width: auto; height: auto; padding: 8px 12px; border-right: 0; border-bottom: 1px solid #e2eaf3; }
+  .lunar-sidebar nav { display: flex; gap: 4px; overflow-x: auto; }
+  .sidebar-link { min-width: max-content; }
+  .sidebar-quote { display: none; }
+  .chandra-workspace { margin-left: 0; }
+  .institution-lockup { display: none; }
+  .header-primary-bar .header-container { padding-inline: 18px; }
+}
+@media (max-width: 700px) {
+  .product-subtitle { display: none; }
+  .product-name { font-size: 22px; }
+  .product-mark { width: 42px; height: 42px; }
+  .lunar-hero { min-height: 200px; padding: 24px; }
+  .lunar-hero h1 { font-size: 31px; }
+  .lunar-hero h2 { font-size: 17px; }
+  .lunar-hero blockquote { display: none; }
+  .registration-steps { grid-template-columns: repeat(2, 1fr); padding: 14px; }
+  .registration-step:not(:last-child)::after { display: none; }
+  .mission-grid, .kpi-row { grid-template-columns: 1fr; }
+  .image-pair-preview { gap: 8px; }
+}

@@ -25,58 +25,52 @@ export function SiteHeader({
     { id: 'information', label: 'Information', desc: 'Mission impact and glossary' },
   ]
 
-  return (
-    <header className="chandra-header">
-      {/* Top Telemetry & Brand Bar */}
-      <div className="header-primary-bar">
-        <div className="header-container">
-          <div className="product-lockup">
-            <span className="product-mark" aria-hidden="true">C</span>
-            <span className="product-name">Chandra-sync</span>
-          </div>
+  const sideNav = [
+    { id: 'console', label: 'Home', icon: '⌂' },
+    { id: 'console', label: 'Image registration', icon: '▧' },
+    { id: 'benchmarks', label: 'Results', icon: '▤' },
+    { id: 'pipeline', label: 'Methodology', icon: '◫' },
+    { id: 'information', label: 'About project', icon: 'ⓘ' },
+    { id: 'information', label: 'Documentation', icon: '▣' },
+  ]
 
-          <div className="header-telemetry-zone">
-            <div className={`engine-status-pill ${apiOnline ? 'online' : 'cached'}`}>
-              <span className={`status-pulse-dot ${apiOnline ? 'pulse' : 'off'}`} />
-              <div className="status-meta">
-                <span className="status-label">{apiOnline ? 'Engine online' : 'Cache mode'}</span>
-                <span className="status-device">{apiOnline ? `Device: ${apiDevice}` : 'Air-gapped local demo'}</span>
+  return (
+    <>
+      <header className="chandra-header">
+        <div className="header-primary-bar">
+          <div className="header-container">
+            <div className="product-lockup">
+              <span className="product-mark" aria-hidden="true">◐</span>
+              <div>
+                <span className="product-name">LUNARX</span>
+                <span className="product-subtitle">Aligning lunar images for a clearer tomorrow</span>
               </div>
             </div>
-            {onExportReport && (
-              <button
-                type="button"
-                className="header-action-btn"
-                onClick={onExportReport}
-                title="Download mission verification report"
-              >
-                Export CSV
-              </button>
-            )}
+            <div className="institution-lockup">
+              <span className="isro-wordmark">ISRO</span>
+              <div><strong>PS - SIH26166</strong><small>Chandrayaan-2 image registration system</small></div>
+            </div>
+            <div className="header-telemetry-zone">
+              <div className={`engine-status-pill ${apiOnline ? 'online' : 'cached'}`}>
+                <span className={`status-pulse-dot ${apiOnline ? 'pulse' : 'off'}`} />
+                <span className="status-label">{apiOnline ? 'Engine online' : 'Local demo'}</span>
+              </div>
+              {onExportReport && <button type="button" className="header-action-btn" onClick={onExportReport}>⇩ &nbsp; Export report</button>}
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Navigation Tab Bar */}
-      <div className="header-nav-bar">
-        <div className="header-container nav-scroll">
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                className={`nav-tab-link ${isActive ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                <span className="tab-title">{tab.label}</span>
-                <span className="tab-desc">{tab.desc}</span>
-                {isActive && <span className="tab-active-indicator" aria-hidden="true" />}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-    </header>
+      </header>
+      <aside className="lunar-sidebar" aria-label="Project navigation">
+        <nav>
+          {sideNav.map((item, index) => (
+            <button key={`${item.label}-${index}`} type="button" className={`sidebar-link ${activeTab === item.id && (index === 0 || index > 1) ? 'active' : ''}`} onClick={() => setActiveTab(item.id)}>
+              <span className="sidebar-icon" aria-hidden="true">{item.icon}</span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-quote">“Exploring the Moon<br />with better insights”<br /><span>— LUNARX</span></div>
+      </aside>
+    </>
   )
 }
