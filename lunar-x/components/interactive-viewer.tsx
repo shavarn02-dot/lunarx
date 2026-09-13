@@ -155,7 +155,7 @@ export function InteractiveViewer({
       >
         {/* HUD Crosshairs Overlay */}
         {showReticle && (
-          <div className="hud-reticle-overlay" pointer-events="none">
+          <div className="hud-reticle-overlay" style={{ pointerEvents: 'none' }}>
             <div className="hud-corner top-left" />
             <div className="hud-corner top-right" />
             <div className="hud-corner bottom-left" />
@@ -242,8 +242,8 @@ export function InteractiveViewer({
       {/* Interactive Bottom Caption & Slider for Split Mode */}
       <div className="viewer-bottom-bar">
         <div className="caption-text-block">
-          <span className="caption-mode-title">{activeCaption.title}:</span>
-          <span className="caption-mode-hint">{activeCaption.hint}</span>
+          <span className="caption-mode-title">{activeCaption.title}</span>
+          <span className="caption-mode-hint">{viewMode === 'matches' ? `Verified correspondences: ${inlierCount}` : activeCaption.hint}</span>
         </div>
 
         {viewMode === 'split' ? (

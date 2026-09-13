@@ -698,6 +698,36 @@ export default function ChandraSyncDashboard() {
           </div>
         )}
 
+        {activeTab === 'console' && (
+          <section className="operator-console" aria-labelledby="operator-title">
+            <div className="operator-heading">
+              <div><p className="operator-kicker">IMAGE REGISTRATION</p><h1 id="operator-title">Align two lunar images</h1><p>Choose a target and reference image, then inspect the registered result.</p></div>
+              <span className={`operator-connection ${apiOnline ? 'connected' : ''}`}><span className="status-pulse-dot" />{apiOnline ? 'Registration service connected' : 'Local reference mode'}</span>
+            </div>
+            <div className="operator-layout">
+              <section className="operator-inputs" aria-labelledby="inputs-title">
+                <div className="operator-section-heading"><div><span className="section-number">01</span><h2 id="inputs-title">Input images</h2></div><span className="operator-section-note">Select a verified pair</span></div>
+                <label className="operator-label" htmlFor="operator-pair">Image pair</label>
+                <select id="operator-pair" className="operator-select" value={selectedPairId} onChange={(e) => setSelectedPairId(e.target.value)}>{PRESET_PAIRS.map((pair) => <option key={pair.id} value={pair.id}>{pair.name}</option>)}{customPair && <option value="custom">{customPair.name}</option>}</select>
+                <div className="operator-image-grid">
+                  <figure className="operator-image-card"><figcaption>Target image</figcaption><img src={getImageUrl(activePair.source_img)} alt="Target lunar image" onError={(e) => handleImgError(e, activePair.source_img)} /><strong>{activePair.sensor}</strong><small>{activePair.orbit}</small></figure>
+                  <figure className="operator-image-card"><figcaption>Reference image</figcaption><img src={getImageUrl(activePair.reference_img)} alt="Reference lunar image" onError={(e) => handleImgError(e, activePair.reference_img)} /><strong>{activePair.sensor}</strong><small>{activePair.orbit}</small></figure>
+                </div>
+                <label className="upload-control" htmlFor="operator-upload"><span>Upload a different image pair</span><small>PNG, JPG or TIFF · two files</small><input id="operator-upload" type="file" multiple accept="image/*,.img,.tif,.tiff,.png,.jpg,.jpeg" onChange={handleCustomUpload} /></label>
+                <div className="operator-settings"><div><label className="operator-label" htmlFor="operator-method">Matching method</label><select id="operator-method" className="operator-select" value={selectedMethod} onChange={(e) => setSelectedMethod(e.target.value)}><option value="SIFT">SIFT</option><option value="LoFTR">LoFTR</option><option value="SuperPoint+LightGlue">SuperPoint + LightGlue</option><option value="ORB">ORB</option></select></div><div><label className="operator-label" htmlFor="operator-model">Transformation</label><select id="operator-model" className="operator-select" value={selectedModelType} onChange={(e) => setSelectedModelType(e.target.value)}><option value="affine">Affine</option><option value="homography">Homography</option><option value="rigid">Rigid</option></select></div></div>
+                <label className="operator-check"><input type="checkbox" checked={subpixelEnabled} onChange={(e) => setSubpixelEnabled(e.target.checked)} /><span>Apply sub-pixel refinement</span></label>
+                <button type="button" className="operator-run" onClick={handleRunRegistration} disabled={isRunning}>{isRunning ? 'Registering images…' : 'Run registration'}</button>
+              </section>
+              <section className="operator-result" aria-labelledby="result-title">
+                <div className="operator-section-heading"><div><span className="section-number">02</span><h2 id="result-title">Registration result</h2></div><button type="button" className="operator-export" onClick={handleExport}>Export report</button></div>
+                <InteractiveViewer viewMode={viewMode} setViewMode={setViewMode} currentImageFile={currentImages[viewMode === 'split' ? 'registered' : viewMode]} referenceImageFile={activePair.reference_img} registeredImageFile={currentImages.registered} sensorName={activePair.sensor} orbitName={activePair.orbit} inlierCount={activeMetrics.inliers} reprojRmse={rmse} getImageUrl={getImageUrl} handleImgError={handleImgError} />
+                <div className="operator-metrics"><div><span>RMSE</span><strong>{Number(activeMetrics.reproj_rmse_coarse).toFixed(3)} px</strong></div><div><span>Verified inliers</span><strong>{activeMetrics.inliers}</strong></div><div><span>Coverage</span><strong>{Number(activeMetrics.spatial_coverage_pct).toFixed(1)}%</strong></div><div><span>Processing time</span><strong>{Number(executionResult?.runtime_sec ?? activeMetrics.runtime_sec ?? 0).toFixed(2)} s</strong></div></div>
+                <div className={`operator-result-note ${hasRun ? 'complete' : ''}`}><strong>{hasRun ? 'Registration complete' : 'Ready to register'}</strong><span>{hasRun ? 'Review the overlay and export the verification report.' : 'The result will appear here after you run registration.'}</span></div>
+              </section>
+            </div>
+          </section>
+        )}
+
         {/* ── TAB 2: 6-STAGE PIPELINE ARCHITECTURE (SLIDE 3) ── */}
         {activeTab === 'pipeline' && (
           <div className="tab-content-panel">
