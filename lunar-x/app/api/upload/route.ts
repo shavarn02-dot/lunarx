@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     const backendUrl = process.env.LUNARX_BACKEND_URL || 'http://127.0.0.1:8000'
     try {
       const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 2000)
+      const timeout = setTimeout(() => controller.abort(), 15000)
       const forwardData = new FormData()
       forwardData.append('file', file)
       const res = await fetch(`${backendUrl}/api/upload`, {
@@ -22,18 +22,20 @@ export async function POST(req: NextRequest) {
       clearTimeout(timeout)
       if (res.ok) {
         const data = await res.json()
-        return NextResponse.json(data)
+        return NextResponse.json({ ...data, backend: true })
       }
     } catch (e) {
       // Backend offline or running on Vercel
     }
 
-    // Fallback response for Vercel deployment
-    const filename = file.name
+    // Fallback: tell frontend to keep the local blob preview
+    const filename = `upload_${Date.now()}_upload_src_${file.name}`
     return NextResponse.json({
       filename,
-      url: `/images/${filename}`,
+      url: '',
       bytes: file.size,
+      backend: false,
+      local_only: true,
     })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Upload failed' }, { status: 500 })
