@@ -2,11 +2,13 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { ThemeProvider } from '@/components/theme-provider'
 import './globals.scss'
+import './isro-console.css'
+import './chandra-sync.css'
 
 export const metadata: Metadata = {
-  title: 'CHANDRA-ALIGN | ISRO Chandrayaan-2 Planetary Image Registration System',
+  title: 'Chandra-sync | ISRO Chandrayaan-2 Planetary Image Registration System',
   description:
-    'Automatic Feature Extraction and Sub-Pixel Image Registration of Chandrayaan-2 Lunar Imagery (OHRC, TMC-2, IIRS) - SIH26166',
+    'Chandra-sync: Autonomous Sub-Pixel Image Registration & Multi-Sensor Lunar Photogrammetry (OHRC, TMC-2, IIRS) - ISRO SIH26166',
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {

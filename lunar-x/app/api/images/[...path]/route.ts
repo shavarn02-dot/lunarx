@@ -17,6 +17,7 @@ export async function GET(
     path.resolve(projectRoot, 'data', 'raw'),
     path.resolve(projectRoot, 'data', 'outputs'),
     path.resolve(projectRoot, 'ppt_visuals'),
+    path.resolve(projectRoot, 'data', 'ppt_graphs'),
   ]
 
   let foundPath: string | null = null
