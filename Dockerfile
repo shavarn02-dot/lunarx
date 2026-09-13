@@ -3,7 +3,7 @@ FROM python:3.11-slim
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies for OpenCV and geospatial tools
+# System dependencies for OpenCV
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     git \
@@ -15,17 +15,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy requirements and install
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy source code and scripts
 COPY . /app/
 
-# Download real Chandrayaan-2 datasets on image build
-RUN python scripts/download_data.py && python scripts/prepare_test_pairs.py
+EXPOSE 8000
 
-EXPOSE 8501
-
-CMD ["streamlit", "run", "app/dashboard.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["uvicorn", "app.api_server:app", "--host", "0.0.0.0", "--port", "8000"]

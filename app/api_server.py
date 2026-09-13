@@ -1,44 +1,41 @@
 """
-FastAPI Mission Control Backend for Chandrayaan-2 Lunar Image Registration.
-SIH26166 Compliant - Direct integration with real PyTorch / OpenCV registration pipeline.
+Chandrayaan-2 Lunar Image Registration API (FastAPI).
+SIH26166 — real data only. No mock, no synthetic, no hardcoded metrics.
+
+Contract:
+  GET  /api/health          service + device + supported options
+  GET  /api/pairs           preset pairs probed from data/raw (only files on disk)
+  GET  /api/preview?file=   source/reference image bytes (data/raw or data/uploads)
+  POST /api/register        multipart: preset filenames and/or uploaded files + params
+  GET  /api/outputs/{name}  result artefacts produced by live runs in data/outputs
 """
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
-from pathlib import Path
-import shutil
-import time
-import json
-import cv2
-import numpy as np
+from __future__ import annotations
+
 import logging
-import os
+import time
+from pathlib import Path
+from typing import List, Optional
 
-# Set up logging
+import cv2
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("ISRO_API")
+logger = logging.getLogger("ch2-api")
 
-# Setup project paths
 BASE_DIR = Path(__file__).resolve().parent.parent
-PUBLIC_IMG_DIR = BASE_DIR / "lunar-x" / "public" / "images"
-PUBLIC_IMG_DIR.mkdir(parents=True, exist_ok=True)
-UPLOAD_DIR = BASE_DIR / "data" / "upload_samples"
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+RAW_DIR = BASE_DIR / "data" / "raw"
+UPLOAD_DIR = BASE_DIR / "data" / "uploads"
 OUTPUTS_DIR = BASE_DIR / "data" / "outputs"
+for _d in (RAW_DIR, UPLOAD_DIR, OUTPUTS_DIR):
+    _d.mkdir(parents=True, exist_ok=True)
 
-from src.pipeline import run_registration_pipeline
-from src.evaluation.benchmark import run_benchmark_on_pair
+from src.data.ingestion import load_lunar_image  # noqa: E402
+from src.pipeline import run_registration_pipeline  # noqa: E402
 
-app = FastAPI(
-    title="ISRO Chandrayaan-2 Registration API",
-    description="SIH26166 Planetary Image Registration Engine",
-    version="2.0.0"
-)
+app = FastAPI(title="Chandrayaan-2 Registration API", version="3.0.0")
 
-# Enable CORS for Next.js development and production
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -47,227 +44,265 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static images directory for direct image serving fallback
-app.mount("/images", StaticFiles(directory=str(PUBLIC_IMG_DIR)), name="images")
+MATCHERS = ["sift", "orb", "superpoint_lightglue", "loftr"]
+PREPROCESSING = ["clahe", "gradient", "phase_congruency", "raw"]
+MODELS = ["affine", "homography", "rigid"]
+ESTIMATORS = ["USAC_MAGSAC", "RANSAC"]
 
-# Preset Crater Pairs
-PRESET_PAIRS = [
-    {
-        "id": "default_tmc",
-        "name": "Default TMC Crater Scene (Shackleton Vicinity)",
-        "source_img": "ch2_tmc_crater_scene_src.png",
-        "reference_img": "ch2_tmc_crater_scene_ref.png",
-        "resolution": "0.5 m/px",
-        "orbit": "Orbit 3922 vs 3943",
-        "illumination": "High solar incidence angle (terminator shadows)",
-        "sensor": "TMC-2 (Terrain Mapping Camera)",
-        "description": "Standard benchmark lunar crater scene with severe shadow asymmetry and 180° lighting reversal."
-    },
-    {
-        "id": "region_alpha",
-        "name": "Crater Region Alpha (High-Contrast Rim)",
-        "source_img": "Pair_Crater_Region_Alpha_SRC.png",
-        "reference_img": "Pair_Crater_Region_Alpha_REF.png",
-        "resolution": "0.5 m/px",
-        "orbit": "Orbit 3922 (Strip Segment A)",
-        "illumination": "Sharp crater crest highlights with dark floor shadow",
-        "sensor": "TMC-2",
-        "description": "Prominent circular impact rim with secondary ejecta field."
-    },
-    {
-        "id": "region_beta",
-        "name": "Crater Region Beta (Terminator Shadow Slope)",
-        "source_img": "Pair_Crater_Region_Beta_SRC.png",
-        "reference_img": "Pair_Crater_Region_Beta_REF.png",
-        "resolution": "0.5 m/px",
-        "orbit": "Orbit 3943 (Strip Segment B)",
-        "illumination": "Steep lunar slope with deep shadow transition",
-        "sensor": "TMC-2",
-        "description": "Challenging terrain with steep crater walls and extensive shadowed slopes."
-    },
-    {
-        "id": "region_gamma",
-        "name": "Crater Region Gamma (Central Peak Feature)",
-        "source_img": "Pair_Crater_Region_Gamma_SRC.png",
-        "reference_img": "Pair_Crater_Region_Gamma_REF.png",
-        "resolution": "0.5 m/px",
-        "orbit": "Orbit 3922 (Strip Segment C)",
-        "illumination": "Central peak illumination with floor micro-craters",
-        "sensor": "TMC-2",
-        "description": "Complex crater morphology with prominent central uplift peak."
-    },
-    {
-        "id": "region_delta",
-        "name": "Crater Region Delta (Multi-Crater Cluster)",
-        "source_img": "Pair_Crater_Region_Delta_SRC.png",
-        "reference_img": "Pair_Crater_Region_Delta_REF.png",
-        "resolution": "0.5 m/px",
-        "orbit": "Orbit 3943 (Strip Segment D)",
-        "illumination": "Dense overlapping craterlets and regolith textures",
-        "sensor": "TMC-2",
-        "description": "Cluster of multiple degraded craters testing spatial feature distribution."
-    }
+# (id, display name, source file, reference file) — served only if both exist.
+PRESET_DEFS = [
+    (
+        "tmc_crater",
+        "Crater field — TMC-2 cross-pass (600 x 600)",
+        "ch2_tmc_crater_scene_src.png",
+        "ch2_tmc_crater_scene_ref.png",
+    ),
+    (
+        "strip_ohrc",
+        "Orbit strip — TMC-2 crop vs OHRC patch",
+        "ch2_tmc_ncn_patch_crop.jpg",
+        "ch2_ohr_ncp_overlap_patch.jpg",
+    ),
 ]
 
+ALLOWED_SUFFIXES = {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".npz", ".img"}
+
+
+def _safe_lookup(name: str) -> Optional[Path]:
+    """Resolve a client-supplied filename inside RAW_DIR / UPLOAD_DIR only."""
+    base = Path(name or "").name
+    if not base or base.startswith("."):
+        return None
+    if Path(base).suffix.lower() not in ALLOWED_SUFFIXES:
+        return None
+    for directory in (RAW_DIR, UPLOAD_DIR):
+        candidate = directory / base
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def _sanitize(name: str) -> str:
+    base = Path(name or "upload").name
+    clean = "".join(c if c.isalnum() or c in "._-" else "_" for c in base)
+    if Path(clean).suffix.lower() not in ALLOWED_SUFFIXES:
+        clean += ".png"
+    return clean[:120]
+
+
+def _describe(path: Path) -> dict:
+    rec = load_lunar_image(path)
+    h, w = rec.image_uint8.shape[:2]
+    return {
+        "file": path.name,
+        "sensor": rec.sensor,
+        "provenance": rec.provenance.value,
+        "width": w,
+        "height": h,
+        "bytes": path.stat().st_size,
+    }
+
+
+def _bgr_to_rgb(img):
+    if img is not None and img.ndim == 3 and img.shape[2] == 3:
+        return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    return img
+
+
+# ---------------------------------------------------------------- health
 @app.get("/api/health")
-def get_health():
-    import torch
-    cuda_available = torch.cuda.is_available()
-    device_name = torch.cuda.get_device_name(0) if cuda_available else "CPU (Optimized SIMD)"
+def get_health() -> dict:
+    try:
+        import torch
+
+        cuda = torch.cuda.is_available()
+        device = torch.cuda.get_device_name(0) if cuda else "CPU"
+    except Exception:
+        cuda, device = False, "CPU"
     return {
         "status": "ONLINE",
-        "service": "ISRO Chandrayaan-2 Registration Engine (SIH26166)",
-        "device": device_name,
-        "cuda_active": cuda_available,
-        "supported_matchers": ["sift", "orb", "superpoint_lightglue", "loftr"],
-        "supported_preprocessing": ["clahe", "gradient", "raw"],
-        "supported_models": ["affine", "homography", "rigid"],
-        "timestamp": time.time()
+        "service": "Chandrayaan-2 Registration Engine (SIH26166)",
+        "device": device,
+        "cuda": cuda,
+        "matchers": MATCHERS,
+        "preprocessing": PREPROCESSING,
+        "models": MODELS,
+        "estimators": ESTIMATORS,
+        "timestamp": time.time(),
     }
 
+
+# ---------------------------------------------------------------- pairs
 @app.get("/api/pairs")
-def get_preset_pairs():
-    return PRESET_PAIRS
+def get_pairs() -> List[dict]:
+    pairs: List[dict] = []
+    for pid, name, src_name, ref_name in PRESET_DEFS:
+        src = RAW_DIR / src_name
+        ref = RAW_DIR / ref_name
+        if not (src.is_file() and ref.is_file()):
+            continue
+        try:
+            pairs.append(
+                {
+                    "id": pid,
+                    "name": name,
+                    "source": _describe(src),
+                    "reference": _describe(ref),
+                }
+            )
+        except Exception as exc:  # unreadable product -> skip, never fake
+            logger.warning("Skipping preset %s: %s", pid, exc)
+    return pairs
 
-@app.get("/api/benchmark")
-def get_benchmark_results():
-    bench_file = OUTPUTS_DIR / "benchmark_results.json"
-    if bench_file.exists():
-        with open(bench_file, "r") as f:
-            return json.load(f)
-    return []
 
-class RegistrationRequest(BaseModel):
-    source_filename: str
-    reference_filename: str
-    method: str = "loftr"
-    preprocessing: str = "clahe"
-    model_type: str = "affine"
-    subpixel: bool = True
-    spatial_filter: bool = True
-    reproj_thresh: float = 3.0
+# ---------------------------------------------------------------- preview
+@app.get("/api/preview")
+def get_preview(file: str):
+    path = _safe_lookup(file)
+    if path is None:
+        raise HTTPException(status_code=404, detail=f"Image not found: {file}")
+    media = "image/png" if path.suffix.lower() == ".png" else "image/jpeg"
+    if path.suffix.lower() in (".npz", ".img", ".tif", ".tiff"):
+        media = "application/octet-stream"
+    return FileResponse(str(path), media_type=media, filename=path.name)
 
+
+# ---------------------------------------------------------------- register
 @app.post("/api/register")
-def run_registration(req: RegistrationRequest):
-    t_start = time.perf_counter()
-    logs: List[str] = []
+async def post_register(
+    source_preset: str = Form(default=""),
+    reference_preset: str = Form(default=""),
+    source_upload: Optional[UploadFile] = File(default=None),
+    reference_upload: Optional[UploadFile] = File(default=None),
+    method: str = Form(default="sift"),
+    preprocessing: str = Form(default="clahe"),
+    model_type: str = Form(default="affine"),
+    estimator: str = Form(default="USAC_MAGSAC"),
+    reproj_thresh: float = Form(default=3.0),
+    enforce_spatial: bool = Form(default=True),
+    min_coverage: float = Form(default=0.15),
+    subpixel: bool = Form(default=True),
+):
+    if method not in MATCHERS:
+        raise HTTPException(400, f"Unknown matcher: {method}")
+    if preprocessing not in PREPROCESSING:
+        raise HTTPException(400, f"Unknown preprocessing: {preprocessing}")
+    if model_type not in MODELS:
+        raise HTTPException(400, f"Unknown model: {model_type}")
+    if estimator not in ESTIMATORS:
+        raise HTTPException(400, f"Unknown estimator: {estimator}")
+    reproj_thresh = min(10.0, max(1.0, float(reproj_thresh)))
+    min_coverage = min(0.5, max(0.05, float(min_coverage)))
 
-    # Map method name
-    method_key = req.method.lower().replace("+", "_").replace(" ", "_")
-    if "superpoint" in method_key:
-        method_key = "superpoint_lightglue"
-
-    # Resolve image paths (check public/images, upload_samples, and data/raw)
-    src_path = None
-    ref_path = None
-    candidates = [PUBLIC_IMG_DIR, UPLOAD_DIR, BASE_DIR / "data" / "raw"]
-
-    for d in candidates:
-        if (d / req.source_filename).exists() and src_path is None:
-            src_path = d / req.source_filename
-        if (d / req.reference_filename).exists() and ref_path is None:
-            ref_path = d / req.reference_filename
-
-    if not src_path or not ref_path:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Images not found: {req.source_filename} or {req.reference_filename}"
-        )
-
-    logs.append(f"[INGEST] Ingested Source Image: {req.source_filename}")
-    logs.append(f"[INGEST] Ingested Reference Image: {req.reference_filename}")
-    logs.append(f"[PREPROCESS] Executing {req.preprocessing.upper()} shadow enhancement pipeline...")
-    logs.append(f"[MATCHER] Initializing {req.method.upper()} feature matching engine...")
+    async def _materialize(upload: Optional[UploadFile], preset: str, tag: str) -> Path:
+        if upload is not None and upload.filename:
+            dest = UPLOAD_DIR / f"{tag}_{int(time.time())}_{_sanitize(upload.filename)}"
+            with open(dest, "wb") as fh:
+                fh.write(await upload.read())
+            return dest
+        if preset:
+            found = _safe_lookup(preset)
+            if found is not None:
+                return found
+        raise HTTPException(400, f"{tag} image missing: upload a file or pick a preset scene.")
 
     try:
-        # Run real python registration pipeline
-        pipeline_res = run_registration_pipeline(
-            source_path=src_path,
-            reference_path=ref_path,
-            method=method_key,
-            preprocessing=req.preprocessing,
-            model_type=req.model_type,
-            robust_estimator="USAC_MAGSAC",
-            enforce_spatial_coverage=req.spatial_filter,
-            subpixel_enabled=req.subpixel,
-            reproj_thresh=req.reproj_thresh
+        src_path = await _materialize(source_upload, source_preset, "source")
+        ref_path = await _materialize(reference_upload, reference_preset, "reference")
+        rec_src = load_lunar_image(src_path)
+        rec_ref = load_lunar_image(ref_path)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(400, f"Could not read lunar products: {exc}")
+
+    try:
+        out = run_registration_pipeline(
+            source_path=rec_src,
+            reference_path=rec_ref,
+            method=method,
+            preprocessing=preprocessing,
+            model_type=model_type,
+            robust_estimator=estimator,
+            enforce_spatial_coverage=enforce_spatial,
+            min_coverage_ratio=min_coverage,
+            subpixel_enabled=subpixel,
+            reproj_thresh=reproj_thresh,
         )
-
-        inlier_pct = pipeline_res.robust_result.inlier_ratio * 100.0
-        logs.append(f"[MAGSAC++] Robust estimation completed in {pipeline_res.robust_result.inlier_count} inliers ({inlier_pct:.1f}%)")
-        if pipeline_res.subpixel_result:
-            logs.append(f"[SUBPIXEL] CornerSubPix gradient snapped. Refined RMSE = {pipeline_res.subpixel_result.rmse_refined:.4f} px")
-        logs.append(f"[MOSAIC] Seamless warped alignment composite generated successfully.")
-
-        # Save output visualizations into public/images so Next.js renders them instantly
-        ts = int(time.time())
-        stem = f"run_{ts}_{method_key}_{req.preprocessing}"
-        
-        matches_file = f"{stem}_matches.png"
-        registered_file = f"{stem}_registered.png"
-        checkerboard_file = f"{stem}_checkerboard.png"
-        difference_file = f"{stem}_difference.png"
-
-        cv2.imwrite(str(PUBLIC_IMG_DIR / matches_file), pipeline_res.visualization_matches)
-        cv2.imwrite(str(PUBLIC_IMG_DIR / registered_file), pipeline_res.warped_image)
-        cv2.imwrite(str(PUBLIC_IMG_DIR / checkerboard_file), pipeline_res.visualization_checkerboard)
-        cv2.imwrite(str(PUBLIC_IMG_DIR / difference_file), pipeline_res.visualization_difference)
-
-        coarse_rmse = pipeline_res.robust_result.reproj_rmse
-        if pipeline_res.subpixel_result and pipeline_res.subpixel_result.improved:
-            refined_rmse = pipeline_res.subpixel_result.rmse_refined
-        else:
-            refined_rmse = coarse_rmse
-
-        return {
-            "success": pipeline_res.success,
-            "runtime_sec": round(pipeline_res.total_runtime_sec, 3),
-            "metrics": {
-                "inliers": pipeline_res.robust_result.inlier_count,
-                "raw_matches": pipeline_res.match_result.count,
-                "inlier_ratio_pct": round(inlier_pct, 2),
-                "reproj_rmse_coarse": round(coarse_rmse, 4),
-                "reproj_rmse_refined": round(refined_rmse, 4),
-                "spatial_coverage_pct": round(pipeline_res.spatial_result.convex_hull_coverage_ratio * 100.0, 2),
-                "grid_occupancy_pct": round(pipeline_res.spatial_result.grid_occupancy_ratio * 100.0, 1),
-                "photometric_ncc": round(pipeline_res.quality_report.photometric_ncc, 4),
-                "status": pipeline_res.quality_report.status
-            },
-            "images": {
-                "matches": matches_file,
-                "registered": registered_file,
-                "checkerboard": checkerboard_file,
-                "difference": difference_file
-            },
-            "transformation_matrix": pipeline_res.robust_result.matrix.tolist() if pipeline_res.robust_result.matrix is not None else None,
-            "logs": logs
-        }
-
-    except Exception as e:
+    except Exception as exc:
         logger.exception("Pipeline execution failed")
-        return {
-            "success": False,
-            "runtime_sec": round(time.perf_counter() - t_start, 3),
-            "error": str(e),
-            "logs": logs + [f"[ERROR] Pipeline terminated with error: {str(e)}"]
-        }
+        raise HTTPException(500, f"Pipeline error: {exc}")
 
-@app.post("/api/upload")
-async def upload_custom_image(file: UploadFile = File(...)):
-    filename = file.filename
-    dest_public = PUBLIC_IMG_DIR / filename
-    dest_samples = UPLOAD_DIR / filename
-    
-    with open(dest_public, "wb") as f:
-        shutil.copyfileobj(file.file, f)
-    shutil.copy(dest_public, dest_samples)
+    rep = out.quality_report
+    stem = (
+        f"{rec_src.file_path.stem}_to_{rec_ref.file_path.stem}"
+        f"_{method}_{preprocessing}_{int(time.time())}"
+    )
+    files: dict = {}
+    try:
+        artefacts = {
+            "registered": out.warped_image,
+            "matches": _bgr_to_rgb(out.visualization_matches),
+            "checkerboard": _bgr_to_rgb(out.visualization_checkerboard),
+            "difference": _bgr_to_rgb(out.visualization_difference),
+        }
+        for key, img in artefacts.items():
+            fname = f"{stem}_{key}.png"
+            cv2.imwrite(str(OUTPUTS_DIR / fname), img)
+            files[key] = fname
+    except Exception as exc:
+        logger.warning("Could not persist outputs: %s", exc)
+
+    def _num(value: float):
+        f = float(value)
+        return None if f == float("inf") or f != f else round(f, 4)
 
     return {
-        "filename": filename,
-        "size": dest_public.stat().st_size,
-        "url": f"/images/{filename}"
+        "success": out.success,
+        "status": rep.status,
+        "failure_reason": rep.failure_reason,
+        "runtime_sec": round(out.total_runtime_sec, 3),
+        "pair": {"source": rec_src.file_path.name, "reference": rec_ref.file_path.name},
+        "config": {
+            "method": method,
+            "preprocessing": preprocessing,
+            "model": model_type,
+            "estimator": estimator,
+            "reproj_thresh": reproj_thresh,
+            "min_coverage": min_coverage,
+            "subpixel": subpixel,
+        },
+        "metrics": {
+            "raw_matches": rep.raw_match_count,
+            "inliers": rep.inlier_match_count,
+            "inlier_ratio_pct": round(rep.inlier_ratio * 100.0, 2),
+            "rmse_coarse": _num(rep.reprojection_rmse_coarse),
+            "rmse_refined": _num(rep.reprojection_rmse_refined),
+            "delta_rmse": round(float(rep.delta_rmse), 4),
+            "coverage_pct": round(rep.spatial_coverage_percent, 2),
+            "occupied_cells": rep.occupied_cells,
+            "total_cells": rep.total_cells,
+            "ncc": round(float(rep.photometric_ncc), 4),
+            "stable": rep.is_stable,
+            "condition": _num(rep.condition_number),
+        },
+        "files": files,
     }
+
+
+# ---------------------------------------------------------------- outputs
+@app.get("/api/outputs/{name}")
+def get_output(name: str):
+    base = Path(name).name
+    if Path(base).suffix.lower() != ".png":
+        raise HTTPException(404, "Not found")
+    path = OUTPUTS_DIR / base
+    if not path.is_file():
+        raise HTTPException(404, f"Output not found: {name}")
+    return FileResponse(str(path), media_type="image/png", filename=base)
+
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="127.0.0.1", port=8000)

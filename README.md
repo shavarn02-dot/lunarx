@@ -132,25 +132,31 @@ Run the headless benchmarking suite across all matchers and preprocessors:
 python scripts/benchmark_models.py
 ```
 
-### 6. Launch ISRO Mission Control Dashboard
-Launch the interactive web UI:
+### 6. Launch the Registration Console (Next.js + FastAPI engine)
+Start the Python engine and the Next.js console (two terminals):
 ```bash
-streamlit run app/dashboard.py
+python -m uvicorn app.api_server:app --port 8000 --host 127.0.0.1
 ```
-Open your browser at `http://localhost:8501`.
+```bash
+cd lunar-x
+npm install
+npm run dev
+```
+Open the console at `http://localhost:3030` (engine API at `http://127.0.0.1:8000`).
+Or double-click `run_lunar_x.bat` on Windows to start both.
 
 ---
 
 ## 🐳 Docker Deployment
 
-To run in an isolated container:
+To run in isolated containers (engine on :8000, console on :3030):
 ```bash
-docker build -t isro-lunar-registration .
-docker run -p 8501:8501 isro-lunar-registration
+docker-compose up --build
 ```
-Or via Docker Compose:
+Or engine only:
 ```bash
-docker-compose up
+docker build -t isro-lunar-engine .
+docker run -p 8000:8000 isro-lunar-engine
 ```
 
 ---
@@ -160,8 +166,7 @@ docker-compose up
 ```
 ISRO/
 ├── app/
-│   ├── dashboard.py               # Streamlit Mission Control frontend
-│   └── styles.py                  # ISRO aerospace dark CSS theme
+│   ├── api_server.py              # FastAPI registration engine (powers the Next.js console)
 ├── src/
 │   ├── data/
 │   │   ├── ingestion.py           # Ingestion layer (PDS4 XML+IMG, GeoTIFF, NPZ)

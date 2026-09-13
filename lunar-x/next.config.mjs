@@ -1,12 +1,8 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   sassOptions: {
-    includePaths: [path.join(__dirname, 'node_modules')],
+    // Carbon's published Sass still uses some patterns the latest dart-sass
+    // flags as deprecated. Silence those warnings; they are upstream noise.
     silenceDeprecations: [
       'mixed-decls',
       'global-builtin',
@@ -15,6 +11,6 @@ const nextConfig = {
     ],
     quietDeps: true,
   },
-};
+}
 
-export default nextConfig;
+export default nextConfig

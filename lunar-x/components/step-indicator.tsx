@@ -1,0 +1,1 @@
+export function StepIndicator({step}:{step:number}){return <ol className="steps" aria-label="Registration progress">{['Input','Match','Refine','Results'].map((label,i)=><li key={label} className={i+1<=step?'active':''}><span>{String(i+1).padStart(2,'0')}</span>{label}</li>)}</ol>}

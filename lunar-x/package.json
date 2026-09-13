@@ -1,6 +1,6 @@
 {
-  "name": "chandra-align-ui",
-  "version": "1.0.0",
+  "name": "carbon-starter",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack -p 3030",

@@ -1,11 +1,21 @@
-version: '3.8'
-
 services:
-  chandrayaan-registration:
+  chandrayaan-engine:
     build: .
-    container_name: isro_lunar_registration
+    container_name: isro_lunar_engine
     ports:
-      - "8501:8501"
+      - "8000:8000"
     volumes:
       - ./data:/app/data
+    restart: unless-stopped
+
+  chandrayaan-console:
+    build:
+      context: ./lunar-x
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    container_name: isro_lunar_console
+    ports:
+      - "3030:3030"
+    depends_on:
+      - chandrayaan-engine
     restart: unless-stopped

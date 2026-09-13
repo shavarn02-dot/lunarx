@@ -48,6 +48,11 @@ Desktop.ini
 
 # Temporary run results
 lunar-x/public/images/run_*
+data/outputs/*.png
+data/uploads/
+*.tsbuildinfo
+lunar-x/app_backup_presentation/
+lunarx-scientific-redesign/
 
 # IDE & Editor folders
 .vscode/
