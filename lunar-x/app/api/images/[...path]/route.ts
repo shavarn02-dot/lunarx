@@ -8,6 +8,9 @@ export async function GET(
 ) {
   const resolvedParams = await params
   const filename = resolvedParams.path.join('/')
+  if (resolvedParams.path.length !== 1 || !/^[\w. -]+\.(png|jpe?g|webp|tiff?)$/i.test(filename) || filename.includes('..')) {
+    return new NextResponse('Invalid image filename', { status: 400 })
+  }
 
   // Potential directories where images might be located
   const projectRoot = path.resolve(process.cwd(), '..')
