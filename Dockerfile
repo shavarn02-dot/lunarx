@@ -1,26 +1,25 @@
 FROM python:3.11-slim
 
-ENV DEBIAN_FRONTEND=noninteractive
-ENV PYTHONUNBUFFERED=1
-
-# System dependencies for OpenCV
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    git \
-    libgl1 \
-    libglib2.0-0 \
-    libgomp1 \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=0
 
 WORKDIR /app
 
-COPY requirements.txt /app/
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# System dependencies for OpenCV image processing
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1 \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY . /app/
+# Layer 1: Cached dependencies (only rebuilds if requirements.txt changes)
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
+
+# Layer 2: Application source code (rebuilds in seconds when code changes)
+COPY . .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.api_server:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uvicorn app.api_server:app --host 0.0.0.0 --port ${PORT:-8000}"]
