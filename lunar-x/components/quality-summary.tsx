@@ -1,3 +1,63 @@
-import type {RegistrationResult} from './types'
-export function QualitySummary({result}:{result:RegistrationResult|null}){if(!result)return <section className="quality neutral"><div><span className="quality-mark">—</span><div><p>Registration quality</p><h3>Awaiting result</h3></div></div><p>Run the pipeline to generate a measured quality assessment.</p></section>;const m=result.metrics||{};const verified=result.success&&m.status==='SUCCESS';const review=result.success&&!verified;const title=verified?'Verified':review?'Review required':'Failed';let explanation=result.error||'The registration pipeline did not return a successful solution.';const activeRmse=m.effective_rmse??(m.reproj_rmse_refined&&m.reproj_rmse_refined<1.0?m.reproj_rmse_refined:(m.reproj_rmse_coarse??m.reproj_rmse_refined));if(verified) explanation=`Registration accepted by the pipeline with ${m.inliers??'available'} verified inliers, ${fmt(activeRmse,' px')} reprojection RMSE, and ${fmt(m.spatial_coverage_pct,'%')} spatial coverage.`;return <section className={`quality ${verified?'verified':review?'review':'failed'}`}><div><span className="quality-mark">{verified?'✓':review?'!':'×'}</span><div><p>Registration quality</p><h3>{title}</h3></div></div><p>{explanation}</p></section>}
-function fmt(v:number|null|undefined,s:string){return v==null?'unavailable':`${v}${s}`}
+import type { RegistrationResult } from './types'
+import { Explainer } from './explainer'
+
+export function QualitySummary({
+  result,
+}: {
+  result: RegistrationResult | null
+}) {
+  if (!result)
+    return (
+      <section className="quality neutral">
+        <div>
+          <span className="quality-mark">—</span>
+          <div>
+            <Explainer termKey="registration_quality" showIndicator={true}>
+              <p>Registration quality</p>
+            </Explainer>
+            <h3>Awaiting result</h3>
+          </div>
+        </div>
+        <p>Run the pipeline to generate a measured quality assessment.</p>
+      </section>
+    )
+
+  const m = result.metrics || {}
+  const verified = result.success && m.status === 'SUCCESS'
+  const review = result.success && !verified
+  const title = verified ? 'Verified' : review ? 'Review required' : 'Failed'
+  let explanation =
+    result.error || 'The registration pipeline did not return a successful solution.'
+  const activeRmse =
+    m.effective_rmse ??
+    (m.reproj_rmse_refined && m.reproj_rmse_refined < 1.0
+      ? m.reproj_rmse_refined
+      : (m.reproj_rmse_coarse ?? m.reproj_rmse_refined))
+
+  if (verified)
+    explanation = `Registration accepted by the pipeline with ${
+      m.inliers ?? 'available'
+    } verified inliers, ${fmt(activeRmse, ' px')} reprojection RMSE, and ${fmt(
+      m.spatial_coverage_pct,
+      '%'
+    )} spatial coverage.`
+
+  return (
+    <section className={`quality ${verified ? 'verified' : review ? 'review' : 'failed'}`}>
+      <div>
+        <span className="quality-mark">{verified ? '✓' : review ? '!' : '×'}</span>
+        <div>
+          <Explainer termKey="registration_quality" showIndicator={true}>
+            <p>Registration quality</p>
+          </Explainer>
+          <h3>{title}</h3>
+        </div>
+      </div>
+      <p>{explanation}</p>
+    </section>
+  )
+}
+
+function fmt(v: number | null | undefined, s: string) {
+  return v == null ? 'unavailable' : `${v}${s}`
+}

@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import type { ImageInfo, RegistrationResult } from './types'
+import { Explainer } from './explainer'
 
 type Mode = 'overlay' | 'checkerboard' | 'matches' | 'difference' | 'split'
 
@@ -9,6 +10,14 @@ function resolveImg(path?: string | null): string {
   if (path.startsWith('http://') || path.startsWith('https://')) return path
   if (path.startsWith('/')) return path
   return `/images/${path}`
+}
+
+const tabTermKeyMap: Record<Mode, string> = {
+  overlay: 'tab_overlay',
+  checkerboard: 'tab_checkerboard',
+  matches: 'tab_matches',
+  difference: 'tab_difference',
+  split: 'tab_split',
 }
 
 export function ResultViewer({
@@ -63,15 +72,16 @@ export function ResultViewer({
             ['split', 'Split view'],
           ] as [Mode, string][]
         ).map(([id, label]) => (
-          <button
-            role="tab"
-            aria-selected={mode === id}
-            className={mode === id ? 'active' : ''}
-            key={id}
-            onClick={() => setMode(id)}
-          >
-            {label}
-          </button>
+          <Explainer key={id} termKey={tabTermKeyMap[id]} showIndicator={false}>
+            <button
+              role="tab"
+              aria-selected={mode === id}
+              className={mode === id ? 'active' : ''}
+              onClick={() => setMode(id)}
+            >
+              {label} ✎
+            </button>
+          </Explainer>
         ))}
       </div>
 
