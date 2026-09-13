@@ -256,7 +256,7 @@ export default function ChandraSyncDashboard() {
       setExecutionResult(data)
       setTimeout(() => {
         setCurrentStage(6)
-        setLiveLogs(data.logs || [`[DONE] Sub-pixel registration completed in ${data.runtime_sec}s with zero hallucination.`])
+        setLiveLogs(data.logs || [`[DONE] Sub-pixel registration completed in ${data.runtime_sec}s.`])
         setHasRun(true)
         setViewMode('matches')
       }, 500)
@@ -286,7 +286,7 @@ export default function ChandraSyncDashboard() {
           `[MATCH] ${selectedMethod}: Extracted ${found.inliers} verified correspondences.`,
           `[GEOMETRY] MAGSAC++ affine consensus: ${found.inlier_ratio_pct}% inlier ratio.`,
           `[REFINE] CornerSubPix gradient snapping achieved ${found.reproj_rmse} px RMSE.`,
-          `[DONE] Verified mission benchmark metrics active (Air-gapped safe).`
+          `[DONE] Benchmark metrics loaded from the local reference set.`
         ]
       })
       setLiveLogs([
@@ -391,48 +391,19 @@ export default function ChandraSyncDashboard() {
       />
 
       <main className="chandra-workspace">
-        {/* ── 6-STAGE PIPELINE STEPPER ── */}
-        <section className="stepper-panel" aria-label="Pipeline Architecture Stepper">
-          <div className="stepper-header-row">
-            <div className="stepper-badge-title">
-              <span className="accent-dot" />
-              <span>CHANDRA-SYNC 6-STAGE AUTONOMOUS PIPELINE</span>
-            </div>
-            <div className="stepper-telemetry-indicator">
-              {isRunning
-                ? `EXECUTING STAGE ${currentStage} OF 6...`
-                : 'PIPELINE NOMINAL · SUB-PIXEL READY (<0.15 PX RMSE)'}
-            </div>
-          </div>
-
-          <div className="stepper-grid">
-            {pipelineStages.map((st) => {
-              const isActive = currentStage === st.stageNum
-              const isDone = currentStage > st.stageNum
-              const isCurrentRunning = isRunning && currentStage === st.stageNum
-              return (
-                <div
-                  key={st.num}
-                  className={`stage-card ${isActive ? 'active' : ''} ${isCurrentRunning ? 'running' : ''} ${isDone ? 'done' : ''}`}
-                  onClick={() => setCurrentStage(st.stageNum)}
-                >
-                  <div className="stage-card-top">
-                    <span className="stage-index">{st.num}</span>
-                    <span className="stage-status-chip">
-                      {isCurrentRunning ? 'RUNNING' : isDone ? 'PASS' : isActive ? 'ACTIVE' : 'STANDBY'}
-                    </span>
-                  </div>
-                  <div className="stage-title">
-                    <TechTooltip term={st.termKey}>
-                      {st.name}
-                    </TechTooltip>
-                  </div>
-                  <div className="stage-sub">{st.sub}</div>
-                </div>
-              )
-            })}
-          </div>
-        </section>
+        {activeTab === 'console' && (
+          <>
+            <section className="lunar-hero" aria-labelledby="hero-title">
+              <div><p>CHANDRAYAAN-2</p><h1 id="hero-title">LUNARX</h1><h2>Autonomous lunar image registration &amp; analysis</h2><span>Precise alignment. Reliable insights. Supporting planetary exploration.</span></div>
+              <blockquote>“From images<br />to intelligence.”</blockquote>
+            </section>
+            <section className="registration-steps" aria-label="Registration progress">
+              {[['1', 'Upload images', 'Provide target and reference'], ['2', 'Feature matching', 'Detect and match keypoints'], ['3', 'Geometric alignment', 'Estimate transformation'], ['4', 'Refine & generate', 'Sub-pixel refinement']].map(([number, title, detail], index) => (
+                <div className={`registration-step ${index === 0 ? 'active' : ''}`} key={number}><span>{number}</span><div><strong>{title}</strong><small>{detail}</small></div></div>
+              ))}
+            </section>
+          </>
+        )}
 
         {/* ── TAB 1: MISSION CONTROL WORKSPACE ── */}
         {activeTab === 'console' && (
@@ -441,6 +412,10 @@ export default function ChandraSyncDashboard() {
             <aside className="controls-column">
               {/* Card 1: Data Ingestion */}
               <div className="hud-card">
+                <div className="image-pair-preview">
+                  <figure><figcaption>Target image</figcaption><img src={getImageUrl(activePair.source_img)} alt="Target lunar image" onError={(e) => handleImgError(e, activePair.source_img)} /></figure>
+                  <figure><figcaption>Reference image</figcaption><img src={getImageUrl(activePair.reference_img)} alt="Reference lunar image" onError={(e) => handleImgError(e, activePair.reference_img)} /></figure>
+                </div>
                 <div className="hud-card-header">
                   <span className="hud-card-title">
                     <span>01</span> · Target Data Ingestion
@@ -470,9 +445,9 @@ export default function ChandraSyncDashboard() {
                 </div>
 
                 <div className="target-meta-box">
-                  <div><b>Sensor:</b> <span>{activePair.sensor}</span> &middot; <code>{activePair.resolution}</code></div>
+                  <div><b>Sensor:</b> <span>{activePair.sensor}</span><span className="meta-separator"> / </span><code>{activePair.resolution}</code></div>
                   <div><b>Orbit:</b> <span>{activePair.orbit}</span></div>
-                  <div><b>Solar Geometry:</b> <span style={{ color: 'var(--saffron)' }}>El: {activePair.solar_elevation} &middot; Az: {activePair.solar_azimuth}</span></div>
+                  <div><b>Solar Geometry:</b> <span style={{ color: 'var(--saffron)' }}>El: {activePair.solar_elevation}<span className="meta-separator"> / </span>Az: {activePair.solar_azimuth}</span></div>
                   <div style={{ marginTop: 4, color: 'var(--text-dim)' }}>{activePair.description}</div>
                 </div>
 
@@ -497,7 +472,7 @@ export default function ChandraSyncDashboard() {
                   <span className="hud-card-title">
                     <span>02</span> · Matching &amp; Geometry Engine
                   </span>
-                  <span className="hud-card-badge">Dual-Path AI + CV</span>
+                  <span className="hud-card-badge">Feature matching</span>
                 </div>
 
                 <div className="control-field">
@@ -598,7 +573,7 @@ export default function ChandraSyncDashboard() {
                     onClick={handleRunRegistration}
                     disabled={isRunning}
                   >
-                    {isRunning ? 'EXECUTING 6-STAGE ENGINE...' : 'RUN CHANDRA-SYNC ENGINE 🚀'}
+                    {isRunning ? 'Executing six-stage engine...' : 'Run Chandra-sync engine'}
                   </button>
 
                   <button
@@ -606,7 +581,7 @@ export default function ChandraSyncDashboard() {
                     className="btn-secondary-action"
                     onClick={handleExport}
                   >
-                    📥 Export SIH26166 Mission Verification Report (CSV)
+                    Export mission verification report (CSV)
                   </button>
                 </div>
               </div>
@@ -674,51 +649,83 @@ export default function ChandraSyncDashboard() {
                 handleImgError={handleImgError}
               />
 
-              {/* 2-Column Split: Telemetry Terminal & Mission Geometry HUD */}
-              <div className="telemetry-split-grid">
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
-                    PIPELINE TELEMETRY EXECUTION LOG
+              <details className="telemetry-details">
+                <summary>Show execution telemetry and orbital geometry</summary>
+                <div className="telemetry-split-grid">
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
+                      Pipeline telemetry execution log
+                    </div>
+                    <div className="terminal-box">
+                      {liveLogs.length > 0
+                        ? liveLogs.join('\n')
+                        : 'Chandra-sync engine initialized.\nSelect a target pair and run the engine.\nFastAPI Engine: http://127.0.0.1:8000/api/register'}
+                    </div>
                   </div>
-                  <div className="terminal-box">
-                    {liveLogs.length > 0
-                      ? liveLogs.join('\n')
-                      : 'Chandra-sync engine initialized.\nSelect target pair and press "RUN CHANDRA-SYNC ENGINE 🚀".\nFastAPI Engine: http://127.0.0.1:8000/api/register'}
-                  </div>
-                </div>
 
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
-                    PDS4 ORBITAL GEOMETRY &amp; MATRIX HUD
-                  </div>
-                  <div className="hud-card" style={{ padding: 14, marginBottom: 0 }}>
-                    <div className="hud-table-data">
-                      <div className="hud-data-row">
-                        <span className="data-k">Target Terrain:</span>
-                        <span className="data-v">{activePair.name.split('(')[0]}</span>
-                      </div>
-                      <div className="hud-data-row">
-                        <span className="data-k">Acquisition Pass:</span>
-                        <span className="data-v cyan">{activePair.orbit}</span>
-                      </div>
-                      <div className="hud-data-row">
-                        <span className="data-k">Solar Angles:</span>
-                        <span className="data-v saffron">
-                          Az: {activePair.solar_azimuth || '42.8°'} &middot; El: {activePair.solar_elevation || '8.4°'}
-                        </span>
-                      </div>
-                      <div className="hud-data-row">
-                        <span className="data-k">
-                          <TechTooltip term="svd">Matrix Stability κ(A):</TechTooltip>
-                        </span>
-                        <span className="data-v green">κ(A) &lt; 10⁵ (Physical Invariant)</span>
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
+                      PDS4 orbital geometry and matrix
+                    </div>
+                    <div className="hud-card" style={{ padding: 14, marginBottom: 0 }}>
+                      <div className="hud-table-data">
+                        <div className="hud-data-row">
+                          <span className="data-k">Target terrain:</span>
+                          <span className="data-v">{activePair.name.split('(')[0]}</span>
+                        </div>
+                        <div className="hud-data-row">
+                          <span className="data-k">Acquisition pass:</span>
+                          <span className="data-v cyan">{activePair.orbit}</span>
+                        </div>
+                        <div className="hud-data-row">
+                          <span className="data-k">Solar angles:</span>
+                          <span className="data-v saffron">
+                            Az: {activePair.solar_azimuth || '42.8°'}<span className="meta-separator"> / </span>El: {activePair.solar_elevation || '8.4°'}
+                          </span>
+                        </div>
+                        <div className="hud-data-row">
+                          <span className="data-k">
+                            <TechTooltip term="svd">Matrix stability κ(A):</TechTooltip>
+                          </span>
+                          <span className="data-v green">κ(A) &lt; 10⁵ (physical invariant)</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </details>
             </section>
           </div>
+        )}
+
+        {activeTab === 'console' && (
+          <section className="operator-console" aria-labelledby="operator-title">
+            <div className="operator-heading">
+              <div><p className="operator-kicker">IMAGE REGISTRATION</p><h1 id="operator-title">Align two lunar images</h1><p>Choose a target and reference image, then inspect the registered result.</p></div>
+              <span className={`operator-connection ${apiOnline ? 'connected' : ''}`}><span className="status-pulse-dot" />{apiOnline ? 'Registration service connected' : 'Local reference mode'}</span>
+            </div>
+            <div className="operator-layout">
+              <section className="operator-inputs" aria-labelledby="inputs-title">
+                <div className="operator-section-heading"><div><span className="section-number">01</span><h2 id="inputs-title">Input images</h2></div><span className="operator-section-note">Select a verified pair</span></div>
+                <label className="operator-label" htmlFor="operator-pair">Image pair</label>
+                <select id="operator-pair" className="operator-select" value={selectedPairId} onChange={(e) => setSelectedPairId(e.target.value)}>{PRESET_PAIRS.map((pair) => <option key={pair.id} value={pair.id}>{pair.name}</option>)}{customPair && <option value="custom">{customPair.name}</option>}</select>
+                <div className="operator-image-grid">
+                  <figure className="operator-image-card"><figcaption>Target image</figcaption><img src={getImageUrl(activePair.source_img)} alt="Target lunar image" onError={(e) => handleImgError(e, activePair.source_img)} /><strong>{activePair.sensor}</strong><small>{activePair.orbit}</small></figure>
+                  <figure className="operator-image-card"><figcaption>Reference image</figcaption><img src={getImageUrl(activePair.reference_img)} alt="Reference lunar image" onError={(e) => handleImgError(e, activePair.reference_img)} /><strong>{activePair.sensor}</strong><small>{activePair.orbit}</small></figure>
+                </div>
+                <label className="upload-control" htmlFor="operator-upload"><span>Upload a different image pair</span><small>PNG, JPG or TIFF · two files</small><input id="operator-upload" type="file" multiple accept="image/*,.img,.tif,.tiff,.png,.jpg,.jpeg" onChange={handleCustomUpload} /></label>
+                <div className="operator-settings"><div><label className="operator-label" htmlFor="operator-method">Matching method</label><select id="operator-method" className="operator-select" value={selectedMethod} onChange={(e) => setSelectedMethod(e.target.value)}><option value="SIFT">SIFT</option><option value="LoFTR">LoFTR</option><option value="SuperPoint+LightGlue">SuperPoint + LightGlue</option><option value="ORB">ORB</option></select></div><div><label className="operator-label" htmlFor="operator-model">Transformation</label><select id="operator-model" className="operator-select" value={selectedModelType} onChange={(e) => setSelectedModelType(e.target.value)}><option value="affine">Affine</option><option value="homography">Homography</option><option value="rigid">Rigid</option></select></div></div>
+                <label className="operator-check"><input type="checkbox" checked={subpixelEnabled} onChange={(e) => setSubpixelEnabled(e.target.checked)} /><span>Apply sub-pixel refinement</span></label>
+                <button type="button" className="operator-run" onClick={handleRunRegistration} disabled={isRunning}>{isRunning ? 'Registering images…' : 'Run registration'}</button>
+              </section>
+              <section className="operator-result" aria-labelledby="result-title">
+                <div className="operator-section-heading"><div><span className="section-number">02</span><h2 id="result-title">Registration result</h2></div><button type="button" className="operator-export" onClick={handleExport}>Export report</button></div>
+                <InteractiveViewer viewMode={viewMode} setViewMode={setViewMode} currentImageFile={currentImages[viewMode === 'split' ? 'registered' : viewMode]} referenceImageFile={activePair.reference_img} registeredImageFile={currentImages.registered} sensorName={activePair.sensor} orbitName={activePair.orbit} inlierCount={activeMetrics.inliers} reprojRmse={rmse} getImageUrl={getImageUrl} handleImgError={handleImgError} />
+                <div className="operator-metrics"><div><span>RMSE</span><strong>{Number(activeMetrics.reproj_rmse_coarse).toFixed(3)} px</strong></div><div><span>Verified inliers</span><strong>{activeMetrics.inliers}</strong></div><div><span>Coverage</span><strong>{Number(activeMetrics.spatial_coverage_pct).toFixed(1)}%</strong></div><div><span>Processing time</span><strong>{Number(executionResult?.runtime_sec ?? activeMetrics.runtime_sec ?? 0).toFixed(2)} s</strong></div></div>
+                <div className={`operator-result-note ${hasRun ? 'complete' : ''}`}><strong>{hasRun ? 'Registration complete' : 'Ready to register'}</strong><span>{hasRun ? 'Review the overlay and export the verification report.' : 'The result will appear here after you run registration.'}</span></div>
+              </section>
+            </div>
+          </section>
         )}
 
         {/* ── TAB 2: 6-STAGE PIPELINE ARCHITECTURE (SLIDE 3) ── */}
@@ -727,7 +734,7 @@ export default function ChandraSyncDashboard() {
             <div className="panel-hero-box">
               <h2 className="panel-hero-title">Technical Architecture &amp; 6-Stage End-to-End Pipeline</h2>
               <p className="panel-hero-desc">
-                Mathematical data pipeline bridging raw ISRO PDS4 orbital products to map-ready, sub-pixel registered GeoTIFF rasters with zero hallucination and physical SVD stability guardrails.
+                Data pipeline from ISRO PDS4 orbital products to map-ready, sub-pixel registered GeoTIFF rasters with numerical stability checks.
               </p>
               <div className="tech-pills-row">
                 {['Python 3.10', 'PyTorch 2.2', 'OpenCV 4.9', 'Kornia LoFTR', 'LightGlue', 'FastAPI Async', 'Next.js 16', 'Docker Air-Gapped', 'GDAL/Rasterio', 'PDS4 XML'].map(tech => (
@@ -740,7 +747,7 @@ export default function ChandraSyncDashboard() {
             <div className="hud-card">
               <div className="hud-card-header">
                 <span className="hud-card-title">System Architecture Flowchart (SIH26166 Official)</span>
-                <span className="hud-card-badge">Zero Hallucination Guarantee</span>
+                <span className="hud-card-badge">Reference implementation</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'center', background: '#05080E', padding: 24, borderRadius: 6 }}>
                 <img
@@ -845,7 +852,7 @@ export default function ChandraSyncDashboard() {
               <div className="chart-card">
                 <div className="chart-card-h">
                   <span className="chart-card-title">Runtime Execution Speed (seconds)</span>
-                  <span className="chart-card-val" style={{ color: 'var(--saffron)' }}>SIFT: 0.16s (Real-Time)</span>
+                  <span className="chart-card-val" style={{ color: 'var(--saffron)' }}>SIFT: 0.16s</span>
                 </div>
                 <div className="chart-img-frame">
                   <img src="/api/images/runtime_bar.png" alt="Runtime Speed" />
@@ -866,7 +873,7 @@ export default function ChandraSyncDashboard() {
             {/* 12-Run Benchmark Table */}
             <div className="hud-card">
               <div className="hud-card-header">
-                <span className="hud-card-title">12-Run Verified Benchmark Permutation Table</span>
+                <span className="hud-card-title">Benchmark results</span>
                 <span className="hud-card-badge">Real ISRO Flight Data</span>
               </div>
               <div className="benchmark-table-wrapper">
@@ -1002,7 +1009,7 @@ export default function ChandraSyncDashboard() {
         )}
 
         {/* ── TAB 5: MISSION IMPACT & USE CASES (SLIDE 5) ── */}
-        {activeTab === 'usecases' && (
+        {activeTab === 'information' && (
           <div className="tab-content-panel">
             <div className="panel-hero-box">
               <h2 className="panel-hero-title">Mission Impact &amp; Downstream Space Applications</h2>
@@ -1070,7 +1077,7 @@ export default function ChandraSyncDashboard() {
         )}
 
         {/* ── TAB 6: INTERACTIVE NON-TECH GLOSSARY FOR JUDGES ── */}
-        {activeTab === 'glossary' && (
+        {activeTab === 'information' && (
           <div className="tab-content-panel">
             <div className="panel-hero-box">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14 }}>
@@ -1082,7 +1089,7 @@ export default function ChandraSyncDashboard() {
                 </div>
                 <input
                   type="text"
-                  placeholder="🔍 Search any term (e.g. LoFTR, SIFT, RMSE, CLAHE)..."
+                  placeholder="Search terms such as LoFTR, SIFT, RMSE, or CLAHE"
                   value={glossarySearch}
                   onChange={(e) => setGlossarySearch(e.target.value)}
                   className="hud-input"
