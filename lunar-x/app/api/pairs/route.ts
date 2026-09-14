@@ -6,7 +6,7 @@ export async function GET() {
   const backendUrl =
     (process.env.LUNARX_BACKEND_URL && !process.env.LUNARX_BACKEND_URL.includes('onrender.com'))
       ? process.env.LUNARX_BACKEND_URL
-      : 'https://quizzes-celebrities-linear-measures.trycloudflare.com'
+      : 'https://turbo-incident-delhi-greatly.trycloudflare.com'
 
   try {
     const controller = new AbortController()
